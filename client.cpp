@@ -65,7 +65,7 @@ int main()
 
     // build and compile our shader zprogram
     // ------------------------------------
-    Shader ourShader("basic-opengl.vs", "basic-opengl.fs"); 
+    Shader ourShader("client.vs", "client.fs"); 
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -73,7 +73,9 @@ int main()
     // Write new routine where we draw a 'wedge', to be used for a linear mic array. 
     // Using an uneven number of lags (so we have a zero lag), first determine the
     // range of angles in our wedge. Use this to calculate the vertex coordinates.
-    int numlags = 59 // zero lag is lag number 29
+    //
+    int numlags = 59; // zero lag is lag number 29
+		      //
     // Issue: for different baselines, a fixed number of lags will correspond to a
     // different range of angles! A short baseline covers a given range of angles
     // with fewer lags, or conversely a given range of lags covers a larger angle
@@ -96,9 +98,6 @@ int main()
     // I need to add the microphone positions as uniforms, as well as the speed of
     // sound and the sample rate.
     
-    
-    
-
     float vertices[] = {
         // positions          // colors           // texture coords
          1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
@@ -164,15 +163,9 @@ int main()
         pixels[i] = 0;
     }
 
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
     stbi_image_free(data);
 
     //////////////////////////////////////
@@ -271,15 +264,18 @@ int main()
 	      //std::cout << ((lagvals[i][j] - minvals[i]) * 255 / ranges[i]) << " ";
               for (int k = 0; k < 8; k++) {
 	        //baseline i, lag j, pixel row k. Skip first 8 rows.
-		if (j != maxbin[i]) {
-		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = (unsigned char)((lagvals[i][j] - minvals[i]) * 255 / ranges[i]);
-		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
-		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
-		} else {
-		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = 0;
-		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 255;
-		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
-		}
+		pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = (unsigned char)((lagvals[i][j] - minvals[i]) * 255 / ranges[i]);
+		pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
+		pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
+		//if (j != maxbin[i]) {
+		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = (unsigned char)((lagvals[i][j] - minvals[i]) * 255 / ranges[i]);
+		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
+		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
+		//} else {
+		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = 0;
+		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 255;
+		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
+		//}
 	      }
 	    }
 	    //std::cout << std::endl;
