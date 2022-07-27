@@ -69,6 +69,36 @@ int main()
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
+    
+    // Write new routine where we draw a 'wedge', to be used for a linear mic array. 
+    // Using an uneven number of lags (so we have a zero lag), first determine the
+    // range of angles in our wedge. Use this to calculate the vertex coordinates.
+    int numlags = 59 // zero lag is lag number 29
+    // Issue: for different baselines, a fixed number of lags will correspond to a
+    // different range of angles! A short baseline covers a given range of angles
+    // with fewer lags, or conversely a given range of lags covers a larger angle
+    // range for a shorter baseline.
+    // So, if we use the baseline lengths as a given, we can calculate the supported
+    // lag range for that baseline. We can compare that to the lag range available,
+    // and pick our displayed range of angles accordingly.
+    // For 59 lags, spanning from -29 to 29, and using a sound speed of 343 m/s,
+    // with a sampling frequency of 46875 Hz, the range of lags covers the full
+    // range of angles for baselines up to 21.2 cm.
+    
+    // Completely different idea: I could also use a similar visualisation as the
+    // one I use in the interferometry Shadertoy page. It shows antennas in a 2D
+    // plane, with nested hyperbolae highlighting where the source (also shown)
+    // can possibly lie based on the phase differences measured per baseline.
+    // With this shader, I can colour each pixel by the correlated value for that
+    // particular location/lagbin. This also allows me to use 2D microphone arrays,
+    // as long as I limit it to considering a single plane only.
+    // For this, I need to edit the shader rather than the code for the vertices.
+    // I need to add the microphone positions as uniforms, as well as the speed of
+    // sound and the sample rate.
+    
+    
+    
+
     float vertices[] = {
         // positions          // colors           // texture coords
          1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
