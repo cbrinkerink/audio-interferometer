@@ -19,6 +19,9 @@ using namespace boost;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
+// Ugly global variables for key presses
+bool peakMode = true;
+
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -53,6 +56,9 @@ int main()
         return -1;
     }
     glfwMakeContextCurrent(window);
+
+    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // glad: load all OpenGL function pointers
@@ -210,7 +216,27 @@ int main()
       }
     }
 
+    int stdminvals[6] = {53800000,
+	                 53800000,
+	      	         53300000,
+		         54100000,
+		         54800000,
+		         54600000};
+    // For use in full lag function mapping
+    //int stdmaxvals[6] = {4000000,
+//	                 4200000,
+//		         3700000,
+//		         4500000,
+//		         5200000,
+//		         4800000};
+    int stdmaxvals[6] = {3000000,
+	                 3000000,
+		         3000000,
+		         3000000,
+		         3000000,
+		         3000000};
     int minvals[6];
+    int maxvals[6];
     int ranges[6];
     int maxbin[6];
 
@@ -234,25 +260,24 @@ int main()
         asio::read(port, asio::buffer(&buf, 1536));
 	std::cout << uchar2hex(buf[0]) << " " << uchar2hex(buf[1]) << " " << uchar2hex(buf[2]) << " " << uchar2hex(buf[3]) << std::endl;
 	for (int i = 0; i < 6; i++) {
-          int minval = 10000000;
-	  int maxval = 0;
-	  for (int j = 3; j < 63; j++) {
+	  minvals[i] = stdminvals[i];
+	  maxvals[i] = stdmaxvals[i];
+	  for (int j = 3; j < 64; j++) {
 	    lagvals[i][j] = 0;
 	    lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4 + 3] << 24;
 	    lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4 + 2] << 16;
 	    lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4 + 1] << 8;
 	    lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4];
-	    lagvals[i][j] = 2 * sqrt(lagvals[i][j]);
+	    //lagvals[i][j] = sqrt(lagvals[i][j]);
 	    //cout << lagvals[i][j] << " ";
-	    if (lagvals[i][j] > maxval) {
-		   maxval = lagvals[i][j];
+	    if (lagvals[i][j] > maxvals[i]) {
+		   maxvals[i] = lagvals[i][j];
 		   maxbin[i] = j;
-	    }
-	    if (lagvals[i][j] < minval && lagvals[i][j] != 0) minval = lagvals[i][j];
+	    } 
+	    if (lagvals[i][j] < minvals[i] && lagvals[i][j] != 0) minvals[i] = lagvals[i][j];
 	  }
-	  minvals[i] = minval;
-	  ranges[i] = maxval - minval;
-	  if (ranges[i] < 50) ranges[i] = 50;
+	  ranges[i] = maxvals[i] - minvals[i];
+	  if (ranges[i] < 100000) ranges[i] = 100000;
 	  //std::cout << std::endl << i << " " << minval << " " << maxval << " " << ranges[i] << std::endl;
 	}
 	//std::cout << endl;
@@ -260,25 +285,33 @@ int main()
 	// Texture updates here
 	
 	for (int i = 0; i < 6; i++) {
-            for (int j = 3; j < 63; j++) {
-	      //std::cout << ((lagvals[i][j] - minvals[i]) * 255 / ranges[i]) << " ";
+            for (int j = 3; j < 64; j++) {
               for (int k = 0; k < 8; k++) {
-	        //baseline i, lag j, pixel row k. Skip first 8 rows.
-		pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = (unsigned char)((lagvals[i][j] - minvals[i]) * 255 / ranges[i]);
-		pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
-		pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
-		//if (j != maxbin[i]) {
-		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = (unsigned char)((lagvals[i][j] - minvals[i]) * 255 / ranges[i]);
-		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
-		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
-		//} else {
-		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = 0;
-		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 255;
-		//  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
-		//}
+	        //baseline i, lag j, pixel row k. Skip first 8 rows of texture.
+		
+                // Experiment to see if we can just track the peak
+		if (peakMode) {
+		  if (j == maxbin[i]) {
+		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = (unsigned char)(255 * (lagvals[i][j] - minvals[i]) / (ranges[i]));
+		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
+		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
+		  } else {
+		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = 0;
+		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
+		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
+		  }
+                } else {
+		  // Use normal, full lag functions here
+                  int pv = 255 * (lagvals[i][j] - minvals[i]) / (ranges[i]);
+		  //pv = pv - 3 * (255 - pv);
+		  pv < 0 ? pv = 0 : pv = pv;
+		  pv > 255 ? pv = 255 : pv = pv;
+		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = (unsigned char)pv;
+		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
+		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
+		}
 	      }
 	    }
-	    //std::cout << std::endl;
         }
 
 	// Upload the updated texture to the GPU
@@ -315,6 +348,13 @@ void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+	peakMode = true;
+
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+	peakMode = false;
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

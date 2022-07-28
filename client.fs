@@ -46,6 +46,7 @@ void main()
 
     vec3 pixelpos = vec3((gl_FragCoord.xy - vec2(windowWidth, windowHeight)) / pixelscale, 0.);
 
+
     if (length(pixelpos) <= domeradius) {
       pixelpos.z = sqrt(domeradius * domeradius - pixelpos.x * pixelpos.x - pixelpos.y * pixelpos.y);
 
@@ -74,19 +75,23 @@ void main()
       int lag_34 = int(round(samplerate * d_34 / soundspeed));
 
       vec4 brightness = 
-                         (texture(texture1, vec2(float(lag_12 + 32) / 64., 3./16.)).r * vec4(1., 0., 0., 0.4) +
-                          texture(texture1, vec2(float(lag_23 + 32) / 64., 5./16.)).r * vec4(0., 1., 0., 0.4) +
-                          texture(texture1, vec2(float(lag_31 + 32) / 64., 7./16.)).r * vec4(0., 0., 1., 0.4) +
-                          texture(texture1, vec2(float(lag_14 + 32) / 64., 9./16.)).r * vec4(0.7, 0.7, 0., 0.4) +
-                          texture(texture1, vec2(float(lag_24 + 32) / 64., 11./16.)).r * vec4(0.7, 0., 0.7, 0.4) +
-                          texture(texture1, vec2(float(lag_34 + 32) / 64., 13./16.)).r * vec4(0., 0.7, 0.7, 0.4))/2.4;
+                        sqrt((texture(texture1, vec2(float(lag_12 + 33) / 64., 3./16.)).r * vec4(1., 0., 0., 0.4) +
+                              texture(texture1, vec2(float(lag_23 + 32) / 64., 5./16.)).r * vec4(0., 1., 0., 0.4) +
+                              texture(texture1, vec2(float(lag_31 + 33) / 64., 7./16.)).r * vec4(0., 0., 1., 0.4) +
+                              texture(texture1, vec2(float(lag_14 + 33) / 64., 9./16.)).r * vec4(0.7, 0.7, 0., 0.4) +
+                              texture(texture1, vec2(float(lag_24 + 32) / 64., 11./16.)).r * vec4(0.7, 0., 0.7, 0.4) +
+                              texture(texture1, vec2(float(lag_34 + 33) / 64., 13./16.)).r * vec4(0., 0.7, 0.7, 0.4)) / 2.);
       FragColor = brightness;
 
-      if (length(r_mic1) < 0.005 || length(r_mic2) < 0.005 || length(r_mic3) < 0.005 || length(r_mic4) < 0.005) {
-          FragColor = vec4(0., 0., 1., 1.);
-      }
     } else {
       FragColor = vec4(0., 0., 0., 1.);
+    }
+
+    if (length(pixelpos.xy - mic1pos.xy) < 0.005 ||
+        length(pixelpos.xy - mic2pos.xy) < 0.005 ||
+        length(pixelpos.xy - mic3pos.xy) < 0.005 ||
+        length(pixelpos.xy - mic4pos.xy) < 0.005) {
+        FragColor = vec4(0., 0., 1., 1.);
     }
 
     if (gl_FragCoord.y < 60. && gl_FragCoord.y >= 50.) {
