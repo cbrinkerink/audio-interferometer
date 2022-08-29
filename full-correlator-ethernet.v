@@ -952,7 +952,7 @@ initial begin
   test_pattern_4  = 32'b01001101_01001110_01001111_01010000; // MNOP in ASCII
   test_pattern_5  = 32'b01010001_01010010_01010011_01010100; // QRST in ASCII
   test_pattern_6  = 32'b01010101_01010110_01010111_01011000; // UVWX in ASCII
-  test_pattern_7  = 32'b00110000_00110000_00110000_00110000; // 0000 in ASCII
+  test_pattern_7  = 32'b00111001_00111001_00111001_00111001; // 9999 in ASCII
   test_pattern_8  = 32'b00110001_00110001_00110001_00110001; // 1111 in ASCII
   test_pattern_9  = 32'b00110010_00110010_00110010_00110010; // 2222 in ASCII
   test_pattern_10 = 32'b00110011_00110011_00110011_00110011; // 3333 in ASCII
@@ -1193,7 +1193,7 @@ always @ (posedge clk_in_2) begin
       end else if (baseline == 14) begin
         data_to_send <= read_data_15;
       end
-      address_read <= lag_idx + 1;
+      address_read <= address_read + 1;
       lag_idx <= lag_idx + 1;
     end else if (lag_idx == (numlags - 1)) begin
       // end transmission, de-activate data input for PHY
