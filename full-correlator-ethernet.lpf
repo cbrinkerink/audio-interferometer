@@ -1,0 +1,124 @@
+# 100 MHz LVDS clock together with P4
+
+LOCATE COMP "clk_100MHz" SITE "P3";
+IOBUF PORT "clk_100MHz" IO_TYPE=LVDS;
+FREQUENCY PORT "clk_100MHz" 100.0 MHz;
+
+# Board reset
+
+LOCATE COMP "i_versa_rst_n" SITE "T1";
+IOBUF PORT "i_versa_rst_n" IO_TYPE=LVCMOS33;
+
+# Serial input/output
+
+LOCATE COMP "uart_tx" SITE "A11";
+LOCATE COMP "uart_rx" SITE "C11";
+IOBUF PORT "uart_tx" IO_TYPE=LVCMOS33;
+IOBUF PORT "uart_rx" IO_TYPE=LVCMOS33;
+
+# GPIO pins for microphone connections
+
+LOCATE COMP "mic_data_1" SITE "D13" ; # X4 pin 7
+IOBUF PORT "mic_data_1" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_clk_1" SITE "E13" ; # X4 pin 8
+IOBUF PORT "mic_clk_1" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_data_2" SITE "D14" ; # X4 pin 11
+IOBUF PORT "mic_data_2" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_clk_2" SITE "E14" ; # X4 pin 12
+IOBUF PORT "mic_clk_2" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_data_3" SITE "A9" ; # X4 pin 15
+IOBUF PORT "mic_data_3" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_clk_3" SITE "B10" ; # X4 pin 16
+IOBUF PORT "mic_clk_3" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_data_4" SITE "D12" ; # X4 pin 17
+IOBUF PORT "mic_data_4" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_clk_4" SITE "E12" ; # X4 pin 18
+IOBUF PORT "mic_clk_4" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_data_5" SITE "E15" ; # X4 pin 27
+IOBUF PORT "mic_data_5" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_clk_5" SITE "A16" ; # X4 pin 28
+IOBUF PORT "mic_clk_5" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_data_6" SITE "C16" ; # X4 pin 31
+IOBUF PORT "mic_data_6" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "mic_clk_6" SITE "D16" ; # X4 pin 32
+IOBUF PORT "mic_clk_6" IO_TYPE=LVCMOS33 ;
+
+# GPIO pins for debugging
+
+LOCATE COMP "split_out_1" SITE "A14" ; # X4 pin 9
+IOBUF PORT "split_out_1" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "split_out_2" SITE "C14" ; # X4 pin 10
+IOBUF PORT "split_out_2" IO_TYPE=LVCMOS33 ;
+
+LOCATE COMP "split_out_3" SITE "D11" ; # X4 pin 13
+IOBUF PORT "split_out_3" IO_TYPE=LVCMOS33 ;
+
+# Board LEDs
+
+LOCATE COMP "LED_1" SITE "F16";
+LOCATE COMP "LED_2" SITE "E17";
+LOCATE COMP "LED_3" SITE "F18";
+LOCATE COMP "LED_4" SITE "F17";
+IOBUF PORT "LED_1" IO_TYPE=LVCMOS33;
+IOBUF PORT "LED_2" IO_TYPE=LVCMOS33;
+IOBUF PORT "LED_3" IO_TYPE=LVCMOS33;
+IOBUF PORT "LED_4" IO_TYPE=LVCMOS33;
+
+# All ingredients for ethernet
+
+LOCATE COMP "i_liteeth_rgmii_eth_clocks_rx" SITE "L20";
+IOBUF PORT "i_liteeth_rgmii_eth_clocks_rx" IO_TYPE=LVCMOS25;
+
+LOCATE COMP "i_liteeth_rgmii_eth_mdio" SITE "U18";
+IOBUF PORT "i_liteeth_rgmii_eth_mdio" IO_TYPE=LVCMOS25;
+
+LOCATE COMP "i_liteeth_rgmii_eth_rx_ctl" SITE "U19";
+IOBUF PORT "i_liteeth_rgmii_eth_rx_ctl" IO_TYPE=LVCMOS25;
+
+LOCATE COMP "i_liteeth_rgmii_eth_rx_data[0]" SITE "T20";
+IOBUF PORT "i_liteeth_rgmii_eth_rx_data[0]" IO_TYPE=LVCMOS25;
+LOCATE COMP "i_liteeth_rgmii_eth_rx_data[1]" SITE "U20";
+IOBUF PORT "i_liteeth_rgmii_eth_rx_data[1]" IO_TYPE=LVCMOS25;
+LOCATE COMP "i_liteeth_rgmii_eth_rx_data[2]" SITE "T19";
+IOBUF PORT "i_liteeth_rgmii_eth_rx_data[2]" IO_TYPE=LVCMOS25;
+LOCATE COMP "i_liteeth_rgmii_eth_rx_data[3]" SITE "R18";
+IOBUF PORT "i_liteeth_rgmii_eth_rx_data[3]" IO_TYPE=LVCMOS25;
+
+LOCATE COMP "o_liteeth_rgmii_eth_clocks_tx" SITE "P19";
+IOBUF PORT "o_liteeth_rgmii_eth_clocks_tx" IO_TYPE=LVCMOS25;
+
+LOCATE COMP "o_liteeth_rgmii_eth_rst_n" SITE "U17";
+IOBUF PORT "o_liteeth_rgmii_eth_rst_n" IO_TYPE=LVCMOS25;
+
+LOCATE COMP "o_liteeth_rgmii_eth_mdc" SITE "T18";
+IOBUF PORT "o_liteeth_rgmii_eth_mdc" IO_TYPE=LVCMOS25;
+
+LOCATE COMP "o_liteeth_rgmii_eth_tx_ctl" SITE "R20";
+IOBUF PORT "o_liteeth_rgmii_eth_tx_ctl" IO_TYPE=LVCMOS25;
+
+LOCATE COMP "o_liteeth_rgmii_eth_tx_data[0]" SITE "N19";
+IOBUF PORT "o_liteeth_rgmii_eth_tx_data[0]" IO_TYPE=LVCMOS25;
+LOCATE COMP "o_liteeth_rgmii_eth_tx_data[1]" SITE "N20";
+IOBUF PORT "o_liteeth_rgmii_eth_tx_data[1]" IO_TYPE=LVCMOS25;
+LOCATE COMP "o_liteeth_rgmii_eth_tx_data[2]" SITE "P18";
+IOBUF PORT "o_liteeth_rgmii_eth_tx_data[2]" IO_TYPE=LVCMOS25;
+LOCATE COMP "o_liteeth_rgmii_eth_tx_data[3]" SITE "P20";
+IOBUF PORT "o_liteeth_rgmii_eth_tx_data[3]" IO_TYPE=LVCMOS25;
+
+FREQUENCY PORT "i_liteeth_rgmii_eth_clocks_rx" 125.0 MHz;
+FREQUENCY PORT "o_liteeth_rgmii_eth_clocks_tx" 125.0 MHz;
+
+LOCATE COMP "clk_125MHz" SITE "L19";
+IOBUF PORT "clk_125MHz" IO_TYPE=LVCMOS25;
