@@ -3,3 +3,5 @@ Using an FPGA to sample audio from multiple digital microphones and perform corr
 
 ## Sources used
 I have used OpenGL C++ code from the LearnOpenGL tutorial series (specifically, tutorial 4.1 from section 1). I got the serial connection stuff from a question on stackoverflow :)
+
+The Ethernet core is from LiteEth, it is an independently synthesized core using the gen.py script in that codebase.
