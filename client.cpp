@@ -80,8 +80,6 @@ int main()
     // Using an uneven number of lags (so we have a zero lag), first determine the
     // range of angles in our wedge. Use this to calculate the vertex coordinates.
     //
-    int numlags = 59; // zero lag is lag number 29
-		      //
     // Issue: for different baselines, a fixed number of lags will correspond to a
     // different range of angles! A short baseline covers a given range of angles
     // with fewer lags, or conversely a given range of lags covers a larger angle
@@ -148,10 +146,10 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     // set texture filtering parameters
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
     unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
@@ -163,13 +161,14 @@ int main()
     //	    255, 0, 0,  0, 255, 0,  255, 0, 0,  0, 255, 0,
     //	    0, 255, 0,  255, 0, 0,  0, 255, 0,  255, 0, 0,
     //};
-    unsigned char pixels[12288];
-    for (int i = 0; i < 12288; i++) {
+    unsigned char pixels[3 * 128 * 64];
+    for (int i = 0; i < 3 * 128 * 64; i++) {
         //pixels[i] = rand() % 256;
         pixels[i] = 0;
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 128, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
@@ -194,7 +193,8 @@ int main()
     bool synced = false;
     char tmp;
     int state = 0;
-    char lookingfor[] = {68, 67, 66, 65};
+    //char lookingfor[] = {68, 67, 66, 65};
+    char lookingfor[] = {68, 67, 66};
     while (!synced) {
         asio::read(port, asio::buffer(&tmp, 1));
         if (tmp == lookingfor[state]) {
@@ -202,43 +202,81 @@ int main()
 	} else {
 	    state = 0;
 	}
-	if (state == 4) synced = true;
+	//if (state == 4) synced = true;
+	if (state == 3) synced = true;
     }
-    char tmp2[252 + 5 * 256];
-    asio::read(port, asio::buffer(&tmp2, 252 + 5 * 256));
+    //char tmp2[252 + 14 * 256];
+    char tmp2[381 + 14 * 384];
+    //asio::read(port, asio::buffer(&tmp2, 252 + 14 * 256));
+    asio::read(port, asio::buffer(&tmp2, 381 + 14 * 384));
 
-    unsigned char buf[1536];
+    //unsigned char buf[15 * 256];
+    unsigned char buf[15 * 384];
 
-    int lagvals[6][64];
-    for (int i = 0; i < 6; i++) {
-      for (int j = 0; j < 63; j++) {
+    int lagvals[15][128];
+    for (int i = 0; i < 15; i++) {
+      for (int j = 0; j < 128; j++) {
         lagvals[i][j] = 0;
       }
     }
 
-    int stdminvals[6] = {53800000,
-	                 53800000,
-	      	         53300000,
-		         54100000,
-		         54800000,
-		         54600000};
+    //int stdminvals[15] = {53800000,
+//	                 53800000,
+//	      	         53300000,
+//		         54100000,
+//		         54800000,
+//		         54600000,
+//		         20000000,
+//		         20000000,
+//		         20000000,
+//		         20000000,
+//		         20000000,
+//		         20000000,
+//		         20000000,
+//		         20000000,
+//		         20000000};
+    int stdminvals[15] = {100000000,
+	                  100000000,
+	      	          100000000,
+		          100000000,
+		          100000000,
+		          100000000,
+		          100000000,
+		          100000000,
+		          100000000,
+		          100000000,
+		          100000000,
+		          100000000,
+		          100000000,
+		          100000000,
+		          100000000};
     // For use in full lag function mapping
-    //int stdmaxvals[6] = {4000000,
+//    int stdmaxvals[6] = {4000000,
 //	                 4200000,
-//		         3700000,
+// 	                 3700000,
 //		         4500000,
 //		         5200000,
 //		         4800000};
-    int stdmaxvals[6] = {3000000,
-	                 3000000,
-		         3000000,
-		         3000000,
-		         3000000,
-		         3000000};
-    int minvals[6];
-    int maxvals[6];
-    int ranges[6];
-    int maxbin[6];
+    // For use in peak tracking		         
+    int stdmaxvals[15] = {0,
+	                 0,
+		         0,
+		         0,
+		         0,
+		         0,
+		         0,
+		         0,
+		         0,
+		         0,
+		         0,
+		         0,
+		         0,
+		         0,
+		         0};
+    int minvals[15];
+    int maxvals[15];
+    int ranges[15];
+    int maxbin[15];
 
     // render loop
     // -----------
@@ -257,25 +295,32 @@ int main()
         glBindTexture(GL_TEXTURE_2D, texture);
 
 	// Get serial lag data, scale it, and store it
-        asio::read(port, asio::buffer(&buf, 1536));
-	std::cout << uchar2hex(buf[0]) << " " << uchar2hex(buf[1]) << " " << uchar2hex(buf[2]) << " " << uchar2hex(buf[3]) << std::endl;
-	for (int i = 0; i < 6; i++) {
+        //asio::read(port, asio::buffer(&buf, 15 * 256));
+        asio::read(port, asio::buffer(&buf, 15 * 384));
+	//std::cout << uchar2hex(buf[0]) << " " << uchar2hex(buf[1]) << " " << uchar2hex(buf[2]) << " " << uchar2hex(buf[3]) << std::endl;
+	//std::cout << uchar2hex(buf[0]) << " " << uchar2hex(buf[1]) << " " << uchar2hex(buf[2]) << std::endl;
+	for (int i = 0; i < 15; i++) {
 	  minvals[i] = stdminvals[i];
 	  maxvals[i] = stdmaxvals[i];
-	  for (int j = 3; j < 64; j++) {
+	  cout << i << " ";
+	  for (int j = 3; j < 128; j++) {
 	    lagvals[i][j] = 0;
-	    lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4 + 3] << 24;
-	    lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4 + 2] << 16;
-	    lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4 + 1] << 8;
-	    lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4];
+	    //lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4 + 3] << 24;
+	    //lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4 + 2] << 16;
+	    //lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4 + 1] << 8;
+	    //lagvals[i][j] = lagvals[i][j] | buf[i * 4 * 64 + j * 4];
+	    lagvals[i][j] = lagvals[i][j] | buf[i * 3 * 128 + j * 3 + 2] << 16;
+	    lagvals[i][j] = lagvals[i][j] | buf[i * 3 * 128 + j * 3 + 1] << 8;
+	    lagvals[i][j] = lagvals[i][j] | buf[i * 3 * 128 + j * 3];
 	    //lagvals[i][j] = sqrt(lagvals[i][j]);
-	    //cout << lagvals[i][j] << " ";
+	    cout << lagvals[i][j] << " ";
 	    if (lagvals[i][j] > maxvals[i]) {
 		   maxvals[i] = lagvals[i][j];
 		   maxbin[i] = j;
 	    } 
 	    if (lagvals[i][j] < minvals[i] && lagvals[i][j] != 0) minvals[i] = lagvals[i][j];
 	  }
+	  cout << std::endl;
 	  ranges[i] = maxvals[i] - minvals[i];
 	  if (ranges[i] < 100000) ranges[i] = 100000;
 	  //std::cout << std::endl << i << " " << minval << " " << maxval << " " << ranges[i] << std::endl;
@@ -284,21 +329,29 @@ int main()
 
 	// Texture updates here
 	
-	for (int i = 0; i < 6; i++) {
-            for (int j = 3; j < 64; j++) {
-              for (int k = 0; k < 8; k++) {
-	        //baseline i, lag j, pixel row k. Skip first 8 rows of texture.
+	for (int i = 0; i < 15; i++) {
+            for (int j = 3; j < 128; j++) {
+              for (int k = 0; k < 4; k++) {
+	        // baseline i, lag j, pixel row k. Skip first 2 rows of texture.
+		// We use 4 lines per baseline.
 		
                 // Experiment to see if we can just track the peak
 		if (peakMode) {
 		  if (j == maxbin[i]) {
-		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = (unsigned char)(255 * (lagvals[i][j] - minvals[i]) / (ranges[i]));
-		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
-		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
+		    //pixels[3 * 64 * 2 + i * 3 * 64 * 4 + k * 64 * 3 + j * 3] = (unsigned char)(255 * (lagvals[i][j] - minvals[i]) / (ranges[i]));
+		    //pixels[3 * 64 * 2 + i * 3 * 64 * 4 + k * 64 * 3 + j * 3 + 1] = 0;
+		    //pixels[3 * 64 * 2 + i * 3 * 64 * 4 + k * 64 * 3 + j * 3 + 2] = 0;
+		    //pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3] = (unsigned char)(255 * (lagvals[i][j] - minvals[i]) / (ranges[i]));
+		    pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3] = (unsigned char)(255);
+		    pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3 + 1] = 0;
+		    pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3 + 2] = 0;
 		  } else {
-		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = 0;
-		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
-		    pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
+		    //pixels[3 * 64 * 2 + i * 3 * 64 * 4 + k * 64 * 3 + j * 3] = 0;
+		    //pixels[3 * 64 * 2 + i * 3 * 64 * 4 + k * 64 * 3 + j * 3 + 1] = 0;
+		    //pixels[3 * 64 * 2 + i * 3 * 64 * 4 + k * 64 * 3 + j * 3 + 2] = 0;
+		    pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3] = 0;
+		    pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3 + 1] = 0;
+		    pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3 + 2] = 0;
 		  }
                 } else {
 		  // Use normal, full lag functions here
@@ -306,16 +359,20 @@ int main()
 		  //pv = pv - 3 * (255 - pv);
 		  pv < 0 ? pv = 0 : pv = pv;
 		  pv > 255 ? pv = 255 : pv = pv;
-		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3] = (unsigned char)pv;
-		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 1] = 0;
-		  pixels[3 * 64 * 8 + i * 3 * 64 * 8 + k * 64 * 3 + j * 3 + 2] = 0;
+		  //pixels[3 * 64 * 2 + i * 3 * 64 * 4 + k * 64 * 3 + j * 3] = (unsigned char)pv;
+		  //pixels[3 * 64 * 2 + i * 3 * 64 * 4 + k * 64 * 3 + j * 3 + 1] = 0;
+		  //pixels[3 * 64 * 2 + i * 3 * 64 * 4 + k * 64 * 3 + j * 3 + 2] = 0;
+		  pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3] = (unsigned char)pv;
+		  pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3 + 1] = 0;
+		  pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3 + 2] = 0;
 		}
 	      }
 	    }
         }
 
 	// Upload the updated texture to the GPU
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 128, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
         glGenerateMipmap(GL_TEXTURE_2D);
 
 

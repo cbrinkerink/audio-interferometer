@@ -29,22 +29,29 @@ uniform vec3 mic3pos = vec3(-0.038, 0.065, 0.);
 uniform vec3 mic4pos = vec3(0.04, 0.065, 0.);
 uniform vec3 mic5pos = vec3(0.118, 0.285, 0.);
 uniform vec3 mic6pos = vec3(0.268, 0.285, 0.);
-uniform vec3 mic7pos = vec3(-0.026, -0.065, 0.);
-uniform vec3 mic8pos = vec3(0.026, -0.065, 0.);
+uniform vec3 mic7pos = vec3(0.026, -0.065, 0.);
+uniform vec3 mic8pos = vec3(-0.026, -0.065, 0.);
 uniform int selectedMic = 0;
 uniform int selectedBaseline = -1;
 
 uniform int lagoffsets[28]= int[](64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64);
 uniform float ampscales[28] = float[](1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.);
-uniform int ampshifts[28] = int[](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+uniform float ampshifts[28] = float[](0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.);
 
-float pixelscale = 600.; // Pixels per meter
-// NOTE: On retina screens this is apparently different by a factor of 2:
-// my laptop has an apparent window size that is twice the numbers here.
+
+// NOTE: On retina screens the scaling is apparently different by a factor of 2:
+// my laptop has an apparent window size that is twice the numbers specified below.
 // To correctly calculate the middle of the window, I have to multiply the
 // coords for the middle of the window (400,300 in this example) by 2.
+
+// retinaFactor is 2. for Cinema display, or 1. for laptop display
+float retinaFactor = 1.;
+
 float windowWidth = 800.;
 float windowHeight = 600.;
+
+float pixelscale = windowHeight / retinaFactor; // Pixels per meter
+
 float soundspeed = 343.;
 float samplerate = 46875.;
 
@@ -88,8 +95,7 @@ void main()
     // Use a projected sky dome. We define some effective radius (far-field), and calculate each pixel's
     // effective x,y,z coords using that. We then calculate the distances to each mic from that dome position.
 
-    vec3 pixelpos = vec3((gl_FragCoord.xy - vec2(windowWidth, windowHeight)) / pixelscale, 0.);
-
+    vec3 pixelpos = vec3((gl_FragCoord.xy - vec2(windowWidth, windowHeight) / retinaFactor) / pixelscale, 0.);
 
     if (length(pixelpos) <= domeradius) {
       pixelpos.z = sqrt(domeradius * domeradius - pixelpos.x * pixelpos.x - pixelpos.y * pixelpos.y);
@@ -132,59 +138,40 @@ void main()
       int lag_67 = int(round(samplerate * (length(r_mic7) - length(r_mic6)) / soundspeed));
       int lag_68 = int(round(samplerate * (length(r_mic8) - length(r_mic6)) / soundspeed));
       // WEIRD: swap order of mics 7 and 8 here for correct behaviour...
-      int lag_78 = int(round(samplerate * (length(r_mic7) - length(r_mic8)) / soundspeed));
+      int lag_78 = int(round(samplerate * (length(r_mic8) - length(r_mic7)) / soundspeed));
 
-      vec4 brightness = 
-                            //((texture(texture1, vec2(float(lag_12 + 33) / 64., 1/32. + 1. / 32.)).r  * c1 +
-                            //  texture(texture1, vec2(float(lag_23 + 32) / 64., 1/32. + 3. / 32.)).r  * c2 +
-                            //  texture(texture1, vec2(float(lag_31 + 33) / 64., 1/32. + 5. / 32.)).r  * c3 +
-                            //  texture(texture1, vec2(float(lag_14 + 33) / 64., 1/32. + 7. / 32.)).r  * c4 +
-                            //  texture(texture1, vec2(float(lag_24 + 32) / 64., 1/32. + 9. / 32.)).r  * c5 +
-                            //  texture(texture1, vec2(float(lag_34 + 33) / 64., 1/32. + 11. / 32.)).r * c6 +
-                            //  texture(texture1, vec2(float(lag_15 + 32) / 64., 1/32. + 13. / 32.)).r * c7 +
-                            //  texture(texture1, vec2(float(lag_25 + 32) / 64., 1/32. + 15. / 32.)).r * c8 +
-                            //  texture(texture1, vec2(float(lag_35 + 32) / 64., 1/32. + 17. / 32.)).r * c9 +
-                            //  texture(texture1, vec2(float(lag_45 + 32) / 64., 1/32. + 19. / 32.)).r * c10 +
-                            //  texture(texture1, vec2(float(lag_16 + 32) / 64., 1/32. + 21. / 32.)).r * c11 +
-                            //  texture(texture1, vec2(float(lag_26 + 32) / 64., 1/32. + 23. / 32.)).r * c12 +
-                            //  texture(texture1, vec2(float(lag_36 + 32) / 64., 1/32. + 25. / 32.)).r * c13 +
-                            //  texture(texture1, vec2(float(lag_46 + 32) / 64., 1/32. + 27. / 32.)).r * c14 +
-                            //  texture(texture1, vec2(float(lag_56 + 33) / 64., 1/32. + 29. / 32.)).r * c15) / 7.5);
-
-                              //texture(texture1, vec2(float(lag_16 + 64) / 128., 1/32. + 21. / 32.)).r * c11;
-
-                            ((texture(texture1, vec2(float(lag_12 + lagoffsets[0]) / 128., 1. / 64.)).r  * c01 +
-                              texture(texture1, vec2(float(lag_13 + lagoffsets[1]) / 128., 3. / 64.)).r  * c02 +
-                              texture(texture1, vec2(float(lag_14 + lagoffsets[2]) / 128., 5. / 64.)).r  * c03 +
-                              texture(texture1, vec2(float(lag_15 + lagoffsets[3]) / 128., 7. / 64.)).r  * c04 +
-                              texture(texture1, vec2(float(lag_16 + lagoffsets[4]) / 128., 9. / 64.)).r  * c05 +
-                              texture(texture1, vec2(float(lag_17 + lagoffsets[5]) / 128., 11. / 64.)).r  * c06 +
-                              texture(texture1, vec2(float(lag_18 + lagoffsets[6]) / 128., 13. / 64.)).r  * c07 +
-                              texture(texture1, vec2(float(lag_23 + lagoffsets[7]) / 128., 15. / 64.)).r  * c08 +
-                              texture(texture1, vec2(float(lag_24 + lagoffsets[8]) / 128., 17. / 64.)).r  * c09 +
-                              texture(texture1, vec2(float(lag_25 + lagoffsets[9]) / 128., 19. / 64.)).r  * c10 +
-                              texture(texture1, vec2(float(lag_26 + lagoffsets[10]) / 128., 21. / 64.)).r  * c11 +
-                              texture(texture1, vec2(float(lag_27 + lagoffsets[11]) / 128., 23. / 64.)).r  * c12 +
-                              texture(texture1, vec2(float(lag_28 + lagoffsets[12]) / 128., 25. / 64.)).r  * c13 +
-                              texture(texture1, vec2(float(lag_34 + lagoffsets[13]) / 128., 27. / 64.)).r  * c14 +
-                              texture(texture1, vec2(float(lag_35 + lagoffsets[14]) / 128., 29. / 64.)).r  * c15 +
-                              texture(texture1, vec2(float(lag_36 + lagoffsets[15]) / 128., 31. / 64.)).r  * c16 +
-                              texture(texture1, vec2(float(lag_37 + lagoffsets[16]) / 128., 33. / 64.)).r  * c17 +
-                              texture(texture1, vec2(float(lag_38 + lagoffsets[17]) / 128., 35. / 64.)).r  * c18 +
-                              texture(texture1, vec2(float(lag_45 + lagoffsets[18]) / 128., 37. / 64.)).r  * c19 +
-                              texture(texture1, vec2(float(lag_46 + lagoffsets[19]) / 128., 39. / 64.)).r  * c20 +
-                              texture(texture1, vec2(float(lag_47 + lagoffsets[20]) / 128., 41. / 64.)).r  * c21 +
-                              texture(texture1, vec2(float(lag_48 + lagoffsets[21]) / 128., 43. / 64.)).r  * c22 +
-                              texture(texture1, vec2(float(lag_56 + lagoffsets[22]) / 128., 45. / 64.)).r  * c23 +
-                              texture(texture1, vec2(float(lag_57 + lagoffsets[23]) / 128., 47. / 64.)).r  * c24 +
-                              texture(texture1, vec2(float(lag_58 + lagoffsets[24]) / 128., 49. / 64.)).r  * c25 +
-                              texture(texture1, vec2(float(lag_67 + lagoffsets[25]) / 128., 51. / 64.)).r  * c26 +
-                              texture(texture1, vec2(float(lag_68 + lagoffsets[26]) / 128., 53. / 64.)).r  * c27 +
-                              texture(texture1, vec2(float(lag_78 + lagoffsets[27]) / 128., 55. / 64.)).r  * c28) / 5.);
+      vec4 brightness =     ((max((texture(texture1, vec2(float(lag_12 +  lagoffsets[0]) / 128., 1.  / 64.)).r - ampshifts[ 0]) * ampscales[  0], 0.)  * c01 +
+                              max((texture(texture1, vec2(float(lag_13 +  lagoffsets[1]) / 128., 3.  / 64.)).r - ampshifts[ 1]) * ampscales[  1], 0.)  * c02 +
+                              max((texture(texture1, vec2(float(lag_14 +  lagoffsets[2]) / 128., 5.  / 64.)).r - ampshifts[ 2]) * ampscales[  2], 0.)  * c03 +
+                              max((texture(texture1, vec2(float(lag_15 +  lagoffsets[3]) / 128., 7.  / 64.)).r - ampshifts[ 3]) * ampscales[  3], 0.)  * c04 +
+                              max((texture(texture1, vec2(float(lag_16 +  lagoffsets[4]) / 128., 9.  / 64.)).r - ampshifts[ 4]) * ampscales[  4], 0.)  * c05 +
+                              max((texture(texture1, vec2(float(lag_17 +  lagoffsets[5]) / 128., 11. / 64.)).r - ampshifts[ 5]) * ampscales[  5], 0.)  * c06 +
+                              max((texture(texture1, vec2(float(lag_18 +  lagoffsets[6]) / 128., 13. / 64.)).r - ampshifts[ 6]) * ampscales[  6], 0.)  * c07 +
+                              max((texture(texture1, vec2(float(lag_23 +  lagoffsets[7]) / 128., 15. / 64.)).r - ampshifts[ 7]) * ampscales[  7], 0.)  * c08 +
+                              max((texture(texture1, vec2(float(lag_24 +  lagoffsets[8]) / 128., 17. / 64.)).r - ampshifts[ 8]) * ampscales[  8], 0.)  * c09 +
+                              max((texture(texture1, vec2(float(lag_25 +  lagoffsets[9]) / 128., 19. / 64.)).r - ampshifts[ 9]) * ampscales[  9], 0.)  * c10 +
+                              max((texture(texture1, vec2(float(lag_26 + lagoffsets[10]) / 128., 21. / 64.)).r - ampshifts[10]) * ampscales[ 10], 0.)  * c11 +
+                              max((texture(texture1, vec2(float(lag_27 + lagoffsets[11]) / 128., 23. / 64.)).r - ampshifts[11]) * ampscales[ 11], 0.)  * c12 +
+                              max((texture(texture1, vec2(float(lag_28 + lagoffsets[12]) / 128., 25. / 64.)).r - ampshifts[12]) * ampscales[ 12], 0.)  * c13 +
+                              max((texture(texture1, vec2(float(lag_34 + lagoffsets[13]) / 128., 27. / 64.)).r - ampshifts[13]) * ampscales[ 13], 0.)  * c14 +
+                              max((texture(texture1, vec2(float(lag_35 + lagoffsets[14]) / 128., 29. / 64.)).r - ampshifts[14]) * ampscales[ 14], 0.)  * c15 +
+                              max((texture(texture1, vec2(float(lag_36 + lagoffsets[15]) / 128., 31. / 64.)).r - ampshifts[15]) * ampscales[ 15], 0.)  * c16 +
+                              max((texture(texture1, vec2(float(lag_37 + lagoffsets[16]) / 128., 33. / 64.)).r - ampshifts[16]) * ampscales[ 16], 0.)  * c17 +
+                              max((texture(texture1, vec2(float(lag_38 + lagoffsets[17]) / 128., 35. / 64.)).r - ampshifts[17]) * ampscales[ 17], 0.)  * c18 +
+                              max((texture(texture1, vec2(float(lag_45 + lagoffsets[18]) / 128., 37. / 64.)).r - ampshifts[18]) * ampscales[ 18], 0.)  * c19 +
+                              max((texture(texture1, vec2(float(lag_46 + lagoffsets[19]) / 128., 39. / 64.)).r - ampshifts[19]) * ampscales[ 19], 0.)  * c20 +
+                              max((texture(texture1, vec2(float(lag_47 + lagoffsets[20]) / 128., 41. / 64.)).r - ampshifts[20]) * ampscales[ 20], 0.)  * c21 +
+                              max((texture(texture1, vec2(float(lag_48 + lagoffsets[21]) / 128., 43. / 64.)).r - ampshifts[21]) * ampscales[ 21], 0.)  * c22 +
+                              max((texture(texture1, vec2(float(lag_56 + lagoffsets[22]) / 128., 45. / 64.)).r - ampshifts[22]) * ampscales[ 22], 0.)  * c23 +
+                              max((texture(texture1, vec2(float(lag_57 + lagoffsets[23]) / 128., 47. / 64.)).r - ampshifts[23]) * ampscales[ 23], 0.)  * c24 +
+                              max((texture(texture1, vec2(float(lag_58 + lagoffsets[24]) / 128., 49. / 64.)).r - ampshifts[24]) * ampscales[ 24], 0.)  * c25 +
+                              max((texture(texture1, vec2(float(lag_67 + lagoffsets[25]) / 128., 51. / 64.)).r - ampshifts[25]) * ampscales[ 25], 0.)  * c26 +
+                              max((texture(texture1, vec2(float(lag_68 + lagoffsets[26]) / 128., 53. / 64.)).r - ampshifts[26]) * ampscales[ 26], 0.)  * c27 +
+                              max((texture(texture1, vec2(float(lag_78 + lagoffsets[27]) / 128., 55. / 64.)).r - ampshifts[27]) * ampscales[ 27], 0.)  * c28));
       FragColor = brightness;
 
     } else {
-      FragColor = vec4(0., 0., 0., 1.);
+      FragColor = vec4(0.5, 0.5, 0.5, 1.);
     }
 
     if (length(pixelpos.xy - mic1pos.xy) < 0.005) {

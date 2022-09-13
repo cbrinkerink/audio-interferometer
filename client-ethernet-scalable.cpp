@@ -35,8 +35,8 @@ float micpos3[3] = {-0.038, 0.065, 0.};
 float micpos4[3] = {0.04, 0.065, 0.};
 float micpos5[3] = {0.118, 0.285, 0.};
 float micpos6[3] = {0.268, 0.285, 0.};
-float micpos7[3] = {-0.026, -0.065, 0.};
-float micpos8[3] = {0.026, -0.065, 0.};
+float micpos7[3] = {0.026, -0.065, 0.};
+float micpos8[3] = {-0.026, -0.065, 0.};
 int m1loc, m2loc, m3loc, m4loc, m5loc, m6loc, m7loc, m8loc, smloc, sbloc, loloc, ascloc, ashloc;
 bool zDown = false;
 bool xDown = false;
@@ -45,14 +45,15 @@ bool vDown = false;
 bool bDown = false;
 bool nDown = false;
 bool mDown = false;
+bool lDown = false;
 bool commaDown = false;
 bool periodDown = false;
 bool slashDown = false;
 bool ampSelected = false;
 bool autoScale = true;
 int lagoffsets[28] = {64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64};
-float ampscales[28] = {300000.,400000.,250000.,300000.,350000.,300000.,200000.,200000.,250000.,250000,250000,300000,250000,250000,250000.,300000.,400000.,250000.,300000.,350000.,300000.,200000.,200000.,250000.,250000,250000,300000,250000};
-int ampshifts[28] = {3950000,4100000,3650000,4400000,5000000,4600000,2850000,3250000,3000000,3650000,3300000,3750000,3450000,4200000,2700000,3950000,4100000,3650000,4400000,5000000,4600000,2850000,3250000,3000000,3650000,3300000,3750000,3450000};
+float ampscales[28] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
+float ampshifts[28] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -125,7 +126,7 @@ int main(int argc, char* argv[])
           return -1;
       }
   
-      // build and compile our shader zprogram
+      // build and compile our shader program
       // ------------------------------------
       Shader ourShader("client-ethernet-scalable.vs", "client-ethernet-scalable.fs"); 
   
@@ -273,7 +274,7 @@ int main(int argc, char* argv[])
       glUniform1i(sbloc, selectedBaseline);
       glUniform1iv(loloc, 28, lagoffsets);
       glUniform1fv(ascloc, 28, ampscales);
-      glUniform1iv(ashloc, 28, ampshifts);
+      glUniform1fv(ashloc, 28, ampshifts);
 
       // render loop
       // -----------
@@ -381,7 +382,7 @@ int main(int argc, char* argv[])
   	            pv > 1. ? pv = 1. : pv = pv;
   	            pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3] = pv;
 		  } else {
-  	            pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3] = (lagvals[i][j] - ampshifts[i]) / ampscales[i];
+  	            pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3] = lagvals[i][j];
 		  }
 		} else {
 	          pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3] = 0.;
@@ -556,7 +557,8 @@ void processInput(GLFWwindow *window)
 	if (zDown == false) {
           // First press, do something here
           zDown = true;
-	  selectedMic = (selectedMic - 1) % 8;
+	  selectedMic = selectedMic - 1;
+	  if (selectedMic < -1) selectedMic = 7;
 	  glUniform1i(smloc, selectedMic);
 	  std::cout << " Selected mic number " << selectedMic + 1 << std::endl;
 	}
@@ -573,7 +575,8 @@ void processInput(GLFWwindow *window)
 	if (xDown == false) {
           // First press, do something here
           xDown = true;
-	  selectedMic = (selectedMic + 1) % 8;
+	  selectedMic = selectedMic + 1;
+	  if (selectedMic > 7) selectedMic = -1;
 	  glUniform1i(smloc, selectedMic);
 	  std::cout << " Selected mic number " << selectedMic + 1 << std::endl;
 	}
@@ -677,14 +680,31 @@ void processInput(GLFWwindow *window)
 	if (commaDown == false) {
           // First press, do something here
           commaDown = true;
-	  if (ampSelected && selectedBaseline != -1) {
+	  if (ampSelected) {
             //Change the amplitude scale down
-            ampscales[selectedBaseline] = ampscales[selectedBaseline] / 1.1;
-	    std::cout << "Amp scale for baseline " << selectedBaseline << " reduced to " << ampscales[selectedBaseline] << std::endl;
+	    if (selectedBaseline != -1) {
+              ampscales[selectedBaseline] = ampscales[selectedBaseline] / 1.01;
+	      std::cout << "Amp scale for baseline " << selectedBaseline << " reduced to " << ampscales[selectedBaseline] << std::endl;
+	    } else {
+	      for (int i = 0; i < 28; i++) {
+	        ampscales[i] = ampscales[i] / 1.01;
+	      }
+	      std::cout << "Adjusted amplitude scale for ALL baselines down by 1%" << std::endl;
+	    }
 	  } else {
-	    ampshifts[selectedBaseline] = ampshifts[selectedBaseline] - 20000;
-	    std::cout << "Amp offset for baseline " << selectedBaseline << " reduced to " << ampshifts[selectedBaseline] << std::endl;
+            // Change the amplitude offset down
+	    if (selectedBaseline != -1) {
+	      ampshifts[selectedBaseline] = ampshifts[selectedBaseline] - 0.01;
+	      std::cout << "Amp offset for baseline " << selectedBaseline << " reduced to " << ampshifts[selectedBaseline] << std::endl;
+	    } else {
+	      for (int i = 0; i < 28; i++) {
+	        ampshifts[i] = ampshifts[i] - 0.01;
+	      }
+	      std::cout << "Adjusted amplitude shift for ALL baselines down by 0.01" << std::endl;
+	    }
 	  }
+	  glUniform1fv(ascloc, 28, ampscales);
+          glUniform1fv(ashloc, 28, ampshifts);
 	}
     }
 
@@ -699,14 +719,31 @@ void processInput(GLFWwindow *window)
 	if (periodDown == false) {
           // First press, do something here
           periodDown = true;
-	  if (ampSelected && selectedBaseline != -1) {
-            //Change the amplitude scale up
-            ampscales[selectedBaseline] = ampscales[selectedBaseline] * 1.1;
-	    std::cout << "Amp scale for baseline " << selectedBaseline << " increased to " << ampscales[selectedBaseline] << std::endl;
+	  if (ampSelected) {
+            //Change the amplitude scale down
+	    if (selectedBaseline != -1) {
+              ampscales[selectedBaseline] = ampscales[selectedBaseline] * 1.01;
+	      std::cout << "Amp scale for baseline " << selectedBaseline << " increased to " << ampscales[selectedBaseline] << std::endl;
+	    } else {
+	      for (int i = 0; i < 28; i++) {
+	        ampscales[i] = ampscales[i] * 1.01;
+	      }
+	      std::cout << "Adjusted amplitude scale for ALL baselines up by 1%" << std::endl;
+	    }
 	  } else {
-	    ampshifts[selectedBaseline] = ampshifts[selectedBaseline] + 20000;
-	    std::cout << "Amp offset for baseline " << selectedBaseline << " increased to " << ampshifts[selectedBaseline] << std::endl;
+            // Change the amplitude offset down
+	    if (selectedBaseline != -1) {
+	      ampshifts[selectedBaseline] = ampshifts[selectedBaseline] + 0.01;
+	      std::cout << "Amp offset for baseline " << selectedBaseline << " increased to " << ampshifts[selectedBaseline] << std::endl;
+	    } else {
+	      for (int i = 0; i < 28; i++) {
+	        ampshifts[i] = ampshifts[i] + 0.01;
+	      }
+	      std::cout << "Adjusted amplitude shift for ALL baselines up by 0.01" << std::endl;
+	    }
 	  }
+	  glUniform1fv(ascloc, 28, ampscales);
+          glUniform1fv(ashloc, 28, ampshifts);
 	}
     }
 
@@ -730,6 +767,38 @@ void processInput(GLFWwindow *window)
         if (slashDown == true) {
 	  // First release, do something here
 	  slashDown = false;
+	}
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
+	if (lDown == false) {
+          // First press, do something here
+          lDown = true;
+	  // Output all configurable settings
+	  std::cout << "Mic pos 1: " << micpos1[0] << " " << micpos1[1] << " " << micpos1[2] << std::endl;
+	  std::cout << "Mic pos 2: " << micpos2[0] << " " << micpos2[1] << " " << micpos2[2] << std::endl;
+	  std::cout << "Mic pos 3: " << micpos3[0] << " " << micpos3[1] << " " << micpos3[2] << std::endl;
+	  std::cout << "Mic pos 4: " << micpos4[0] << " " << micpos4[1] << " " << micpos4[2] << std::endl;
+	  std::cout << "Mic pos 5: " << micpos5[0] << " " << micpos5[1] << " " << micpos5[2] << std::endl;
+	  std::cout << "Mic pos 6: " << micpos6[0] << " " << micpos6[1] << " " << micpos6[2] << std::endl;
+	  std::cout << "Mic pos 7: " << micpos7[0] << " " << micpos7[1] << " " << micpos7[2] << std::endl;
+	  std::cout << "Mic pos 8: " << micpos8[0] << " " << micpos8[1] << " " << micpos8[2] << std::endl;
+	  for (int i = 0; i < 28; i++) {
+	    std::cout << "Lag offset " << std::setw(2) << i << ": " << lagoffsets[i] << std::endl;
+	  }
+	  for (int i = 0; i < 28; i++) {
+	    std::cout << "Amp scale " << std::setw(5) << i << ": " << ampscales[i] << std::endl;
+	  }
+	  for (int i = 0; i < 28; i++) {
+	    std::cout << "Amp offset " << std::setw(5) << i << ": " << ampshifts[i] << std::endl;
+	  }
+	}
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_RELEASE) {
+        if (lDown == true) {
+	  // First release, do something here
+	  lDown = false;
 	}
     }
 }
