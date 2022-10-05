@@ -6,8 +6,9 @@
 #include "shader_s.h"
 
 #include <iostream>
-#include <stdlib.h>
+#include <fstream>
 #include <sstream>
+#include <stdlib.h>
 #include <iomanip>
 #include <boost/asio.hpp> 
 #include <termios.h>
@@ -18,9 +19,14 @@
 
 #include <cmath>
 
+#include "json.hpp"
+
+#define NUMLAGS 256
+
 using namespace std;
 using namespace boost;
 using boost::asio::ip::udp;
+using json = nlohmann::json;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -38,6 +44,7 @@ float micpos6[3] = {0.268, 0.285, 0.};
 float micpos7[3] = {0.026, -0.065, 0.};
 float micpos8[3] = {-0.026, -0.065, 0.};
 int m1loc, m2loc, m3loc, m4loc, m5loc, m6loc, m7loc, m8loc, smloc, sbloc, loloc, ascloc, ashloc;
+bool jDown = false;
 bool zDown = false;
 bool xDown = false;
 bool cDown = false;
@@ -51,9 +58,11 @@ bool periodDown = false;
 bool slashDown = false;
 bool ampSelected = false;
 bool autoScale = true;
-int lagoffsets[28] = {64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64};
+float lagoffsets[28] = {NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.};
 float ampscales[28] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
 float ampshifts[28] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+
+bool gotConnection = false;
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -64,6 +73,45 @@ std::string uchar2hex(unsigned char inchar)
   std::ostringstream oss (std::ostringstream::out);
   oss << std::setw(2) << std::setfill('0') << std::hex << (int)(inchar);
   return oss.str();
+}
+
+// Load settings from JSON config file
+void loadConfig(void) {
+  std::ifstream f("config.json");
+  json data = json::parse(f);
+
+  micpos1[0] = data["config"]["positions"]["micpos1"]["x"].get<float>();
+  micpos1[1] = data["config"]["positions"]["micpos1"]["y"].get<float>();
+  micpos1[2] = data["config"]["positions"]["micpos1"]["z"].get<float>();
+  micpos2[0] = data["config"]["positions"]["micpos2"]["x"].get<float>();
+  micpos2[1] = data["config"]["positions"]["micpos2"]["y"].get<float>();
+  micpos2[2] = data["config"]["positions"]["micpos2"]["z"].get<float>();
+  micpos3[0] = data["config"]["positions"]["micpos3"]["x"].get<float>();
+  micpos3[1] = data["config"]["positions"]["micpos3"]["y"].get<float>();
+  micpos3[2] = data["config"]["positions"]["micpos3"]["z"].get<float>();
+  micpos4[0] = data["config"]["positions"]["micpos4"]["x"].get<float>();
+  micpos4[1] = data["config"]["positions"]["micpos4"]["y"].get<float>();
+  micpos4[2] = data["config"]["positions"]["micpos4"]["z"].get<float>();
+  micpos5[0] = data["config"]["positions"]["micpos5"]["x"].get<float>();
+  micpos5[1] = data["config"]["positions"]["micpos5"]["y"].get<float>();
+  micpos5[2] = data["config"]["positions"]["micpos5"]["z"].get<float>();
+  micpos6[0] = data["config"]["positions"]["micpos6"]["x"].get<float>();
+  micpos6[1] = data["config"]["positions"]["micpos6"]["y"].get<float>();
+  micpos6[2] = data["config"]["positions"]["micpos6"]["z"].get<float>();
+  micpos7[0] = data["config"]["positions"]["micpos7"]["x"].get<float>();
+  micpos7[1] = data["config"]["positions"]["micpos7"]["y"].get<float>();
+  micpos7[2] = data["config"]["positions"]["micpos7"]["z"].get<float>();
+  micpos8[0] = data["config"]["positions"]["micpos8"]["x"].get<float>();
+  micpos8[1] = data["config"]["positions"]["micpos8"]["y"].get<float>();
+  micpos8[2] = data["config"]["positions"]["micpos8"]["z"].get<float>();
+  glUniform3f(m1loc, micpos1[0], micpos1[1], micpos1[2]);
+  glUniform3f(m2loc, micpos2[0], micpos2[1], micpos2[2]);
+  glUniform3f(m3loc, micpos3[0], micpos3[1], micpos3[2]);
+  glUniform3f(m4loc, micpos4[0], micpos4[1], micpos4[2]);
+  glUniform3f(m5loc, micpos5[0], micpos5[1], micpos5[2]);
+  glUniform3f(m6loc, micpos6[0], micpos6[1], micpos6[2]);
+  glUniform3f(m7loc, micpos7[0], micpos7[1], micpos7[2]);
+  glUniform3f(m8loc, micpos8[0], micpos8[1], micpos8[2]);
 }
 
 int main(int argc, char* argv[])
@@ -79,17 +127,20 @@ int main(int argc, char* argv[])
 
       // Initialise ethernet necessities
       boost::asio::io_service io_service;
-      udp::endpoint local_endpoint = boost::asio::ip::udp::endpoint(
-  		    boost::asio::ip::address::from_string(argv[1]),
-  		    boost::lexical_cast<int>(argv[2]));
-      std::cout << "Local bind " << local_endpoint << std::endl;
-
+      udp::endpoint local_endpoint;
       udp::socket socket(io_service);
       socket.open(udp::v4());
-      socket.bind(local_endpoint);
-
-      boost::array<char, 512> recv_buf; // Current buffer size: 1 baseline, 128 lags, 4 bytes per lag
       udp::endpoint sender_endpoint;
+      try {
+        local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(argv[1]), boost::lexical_cast<int>(argv[2]));
+        socket.bind(local_endpoint);
+        std::cout << "Local bind " << local_endpoint << std::endl;
+	gotConnection = true;
+      } catch (std::exception& e) {
+        std::cout << "Could not connect to remote IP address, using placeholder data" << std::endl;
+      }
+
+      boost::array<char, NUMLAGS * 4> recv_buf; // Current buffer size: 1 baseline, 256 lags, 4 bytes per lag
       size_t bytes_available;
 
       // glfw: initialize and configure
@@ -131,34 +182,6 @@ int main(int argc, char* argv[])
       Shader ourShader("client-ethernet-scalable.vs", "client-ethernet-scalable.fs"); 
   
       // set up vertex data (and buffer(s)) and configure vertex attributes
-      // ------------------------------------------------------------------
-      
-      // Write new routine where we draw a 'wedge', to be used for a linear mic array. 
-      // Using an uneven number of lags (so we have a zero lag), first determine the
-      // range of angles in our wedge. Use this to calculate the vertex coordinates.
-      //
-      // Issue: for different baselines, a fixed number of lags will correspond to a
-      // different range of angles! A short baseline covers a given range of angles
-      // with fewer lags, or conversely a given range of lags covers a larger angle
-      // range for a shorter baseline.
-      // So, if we use the baseline lengths as a given, we can calculate the supported
-      // lag range for that baseline. We can compare that to the lag range available,
-      // and pick our displayed range of angles accordingly.
-      // For 59 lags, spanning from -29 to 29, and using a sound speed of 343 m/s,
-      // with a sampling frequency of 46875 Hz, the range of lags covers the full
-      // range of angles for baselines up to 21.2 cm.
-      
-      // Completely different idea: I could also use a similar visualisation as the
-      // one I use in the interferometry Shadertoy page. It shows antennas in a 2D
-      // plane, with nested hyperbolae highlighting where the source (also shown)
-      // can possibly lie based on the phase differences measured per baseline.
-      // With this shader, I can colour each pixel by the correlated value for that
-      // particular location/lagbin. This also allows me to use 2D microphone arrays,
-      // as long as I limit it to considering a single plane only.
-      // For this, I need to edit the shader rather than the code for the vertices.
-      // I need to add the microphone positions as uniforms, as well as the speed of
-      // sound and the sample rate.
-      
       float vertices[] = {
           // positions          // colors           // texture coords
            1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
@@ -210,27 +233,20 @@ int main(int argc, char* argv[])
       //int width, height, nrChannels;
       //unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
   
-      //unsigned char pixels[3 * 128 * 64];
-      //for (int i = 0; i < 3 * 128 * 64; i++) {
-      //    pixels[i] = 0;
-      //}
-
-      float pixels[3 * 128 * 64];
-      for (int i = 0; i < 3 * 128 * 64; i++) {
+      float pixels[3 * NUMLAGS * 64];
+      for (int i = 0; i < 3 * NUMLAGS * 64; i++) {
           //pixels[i] = 0;
           pixels[i] = 0.;
       }
   
-      //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 128, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 128, 64, 0, GL_RGB, GL_FLOAT, pixels);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, NUMLAGS, 64, 0, GL_RGB, GL_FLOAT, pixels);
       glGenerateMipmap(GL_TEXTURE_2D);
   
       //stbi_image_free(data);
   
-      //unsigned int lagvals[15][128];
-      float lagvals[28][128];
+      float lagvals[28][NUMLAGS];
       for (int i = 0; i < 28; i++) {
-        for (int j = 0; j < 128; j++) {
+        for (int j = 0; j < NUMLAGS; j++) {
           //lagvals[i][j] = 0;
           lagvals[i][j] = 0.;
         }
@@ -242,7 +258,7 @@ int main(int argc, char* argv[])
       float minvals[28];
       float maxvals[28];
       float ranges[28];
-      int maxbin[28];
+      int maxbin[28] = {NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2, NUMLAGS/2};
  
       // Get the locations of all our uniform variables in the shader,
       // so we can update them according to the user's input later
@@ -272,7 +288,7 @@ int main(int argc, char* argv[])
       glUniform3f(m8loc, micpos8[0], micpos8[1], micpos8[2]);
       glUniform1i(smloc, selectedMic);
       glUniform1i(sbloc, selectedBaseline);
-      glUniform1iv(loloc, 28, lagoffsets);
+      glUniform1fv(loloc, 28, lagoffsets);
       glUniform1fv(ascloc, 28, ampscales);
       glUniform1fv(ashloc, 28, ampshifts);
 
@@ -280,65 +296,66 @@ int main(int argc, char* argv[])
       // -----------
       while (!glfwWindowShouldClose(window))
       {
-        bytes_available = socket.available();
-        while (bytes_available > 0) {
-	  //std::cout << std::endl;
-          //std::cout << "Bytes in RX buffer: " << bytes_available << std::endl;
-          size_t len = socket.receive_from(boost::asio::buffer(recv_buf), sender_endpoint);
-	  //for (int i = 0; i < 4; i++) {
-          //  std::cout << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)(uint8_t)recv_buf.data()[i] << " ";
-  	  //}
+	if (gotConnection) {
           bytes_available = socket.available();
+          while (bytes_available > 0) {
+	    //std::cout << std::endl;
+            //std::cout << "Bytes in RX buffer: " << bytes_available << std::endl;
+            size_t len = socket.receive_from(boost::asio::buffer(recv_buf), sender_endpoint);
+	    //for (int i = 0; i < 4; i++) {
+            //  std::cout << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)(uint8_t)recv_buf.data()[i] << " ";
+  	    //}
+            bytes_available = socket.available();
 
-	  int baseline = -1;
+	    int baseline = -1;
 
-	  if ((unsigned int)(uint8_t)recv_buf.data()[0] == (unsigned int)(uint8_t)recv_buf.data()[1] &&
-	      (unsigned int)(uint8_t)recv_buf.data()[0] == (unsigned int)(uint8_t)recv_buf.data()[2] &&
-	      (unsigned int)(uint8_t)recv_buf.data()[0] == (unsigned int)(uint8_t)recv_buf.data()[3] &&
-	      (unsigned int)(uint8_t)recv_buf.data()[0] != 255) {
-            baseline = (unsigned int)(uint8_t)recv_buf.data()[0];
-	    //std::cout << "B" << baseline << " ";
-	  } else {
-	    std::cout << "Unknown packet detected! ";
-	    std::cout << (unsigned int)(uint8_t)recv_buf.data()[0] << " " << (unsigned int)(uint8_t)recv_buf.data()[1] << " " << (unsigned int)(uint8_t)recv_buf.data()[2] << " " << (unsigned int)(uint8_t)recv_buf.data()[3] << std::endl;
-	  }
-      
-	  //std::cout << std::endl;
-
-          if (baseline != -1) {
-	    minvals[baseline] = stdminvals[baseline];
-  	    maxvals[baseline] = stdmaxvals[baseline];
-	    if (selectedBaseline == -1 || selectedBaseline == baseline) { // FOR DEBUGGING
-	    //if (true) { // FOR DEBUGGING
-  	      for (int j = 5; j < 128; j++) {
-  	        lagvals[baseline][j] = 0.;
-  	        lagvals[baseline][j] = lagvals[baseline][j] + (float)((unsigned int)(uint8_t)recv_buf.data()[j * 4 + 3] << 24);
-  	        lagvals[baseline][j] = lagvals[baseline][j] + (float)((unsigned int)(uint8_t)recv_buf.data()[j * 4 + 2] << 16);
-  	        lagvals[baseline][j] = lagvals[baseline][j] + (float)((unsigned int)(uint8_t)recv_buf.data()[j * 4 + 1] << 8);
-  	        lagvals[baseline][j] = lagvals[baseline][j] + (float)((unsigned int)(uint8_t)recv_buf.data()[j * 4 + 0]);
-	        //std::cout << lagvals[baseline][j] << " ";
-  	        if (lagvals[baseline][j] > maxvals[baseline]) {
-    	          maxvals[baseline] = lagvals[baseline][j];
-  	          maxbin[baseline] = j;
-  	        } 
-  	        if (lagvals[baseline][j] < minvals[baseline] && lagvals[baseline][j] != 0) minvals[baseline] = lagvals[baseline][j];
-  	      }
+	    if ((unsigned int)(uint8_t)recv_buf.data()[0] == (unsigned int)(uint8_t)recv_buf.data()[1] &&
+	        (unsigned int)(uint8_t)recv_buf.data()[0] == (unsigned int)(uint8_t)recv_buf.data()[2] &&
+	        (unsigned int)(uint8_t)recv_buf.data()[0] == (unsigned int)(uint8_t)recv_buf.data()[3] &&
+	        (unsigned int)(uint8_t)recv_buf.data()[0] != 255) {
+              baseline = (unsigned int)(uint8_t)recv_buf.data()[0];
+	      //std::cout << "B" << baseline << " ";
 	    } else {
-  	      for (int j = 5; j < 128; j++) {
-  	        lagvals[baseline][j] = 0.;
-	        minvals[baseline] = 0;
-	        maxvals[baseline] = 100;
-	        maxbin[baseline] = 0;
-  	      } 
+	      std::cout << "Unknown packet detected! ";
+	      std::cout << (unsigned int)(uint8_t)recv_buf.data()[0] << " " << (unsigned int)(uint8_t)recv_buf.data()[1] << " " << (unsigned int)(uint8_t)recv_buf.data()[2] << " " << (unsigned int)(uint8_t)recv_buf.data()[3] << std::endl;
 	    }
-	    //std::cout << minvals[baseline] << " " << maxvals[baseline] << std::endl;
-  	    ranges[baseline] = maxvals[baseline] - minvals[baseline];
-	    //if (maxvals[baseline] == 0) {
-	    //  std::cout << "Warning: baseline " << baseline << " has max of zero!" << std::endl;
-	    //}
+      
+	    //std::cout << std::endl;
+
+            if (baseline != -1) {
+	      minvals[baseline] = stdminvals[baseline];
+  	      maxvals[baseline] = stdmaxvals[baseline];
+	      if (selectedBaseline == -1 || selectedBaseline == baseline) { // FOR DEBUGGING
+	      //if (true) { // FOR DEBUGGING
+  	        for (int j = 5; j < NUMLAGS; j++) {
+  	          lagvals[baseline][j] = 0.;
+  	          lagvals[baseline][j] = lagvals[baseline][j] + (float)((unsigned int)(uint8_t)recv_buf.data()[j * 4 + 3] << 24);
+  	          lagvals[baseline][j] = lagvals[baseline][j] + (float)((unsigned int)(uint8_t)recv_buf.data()[j * 4 + 2] << 16);
+  	          lagvals[baseline][j] = lagvals[baseline][j] + (float)((unsigned int)(uint8_t)recv_buf.data()[j * 4 + 1] << 8);
+  	          lagvals[baseline][j] = lagvals[baseline][j] + (float)((unsigned int)(uint8_t)recv_buf.data()[j * 4 + 0]);
+	          //std::cout << lagvals[baseline][j] << " ";
+  	          if (lagvals[baseline][j] > maxvals[baseline]) {
+    	            maxvals[baseline] = lagvals[baseline][j];
+  	            maxbin[baseline] = j;
+  	          } 
+  	          if (lagvals[baseline][j] < minvals[baseline] && lagvals[baseline][j] != 0) minvals[baseline] = lagvals[baseline][j];
+  	        }
+	      } else {
+  	        for (int j = 5; j < NUMLAGS; j++) {
+  	          lagvals[baseline][j] = 0.;
+	          minvals[baseline] = 0;
+	          maxvals[baseline] = 100;
+	          maxbin[baseline] = 0;
+  	        } 
+	      }
+	      //std::cout << minvals[baseline] << " " << maxvals[baseline] << std::endl;
+  	      ranges[baseline] = maxvals[baseline] - minvals[baseline];
+	      //if (maxvals[baseline] == 0) {
+	      //  std::cout << "Warning: baseline " << baseline << " has max of zero!" << std::endl;
+	      //}
+	    }
 	  }
 	}
-
 
         // input
         // -----
@@ -356,22 +373,22 @@ int main(int argc, char* argv[])
   	
   	for (int i = 0; i < 28; i++) {
   	  if (ranges[i] < 100000) ranges[i] = 100000;
-          for (int j = 5; j < 128; j++) {
+          for (int j = 5; j < NUMLAGS; j++) {
             for (int k = 0; k < 2; k++) {
   	      // baseline i, lag j.
   	      // We use 2 pixelrows per baseline.
               // Experiment to see if we can just track the peak
   	      if (peakMode) {
                 //int pv = 255 * (lagvals[i][j] - minvals[i]) / (ranges[i]);
-  	        if (j == maxbin[i]) {
+  	        if (j == maxbin[i] && (i == selectedBaseline || selectedBaseline == -1)) {
   	          //pixels[3 * 128 * 2 + i * 3 * 128 * 4 + k * 128 * 3 + j * 3] = (unsigned char)(255);
-  	          pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3] = 1.;
-  	          pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3 + 1] = 0.;
-  	          pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3 + 2] = 0.;
+  	          pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3] = 1.;
+  	          pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3 + 1] = 0.;
+  	          pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3 + 2] = 0.;
   	        } else {
-  	          pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3] = 0.;
-  	          pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3 + 1] = 0.;
-  	          pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3 + 2] = 0.;
+  	          pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3] = 0.;
+  	          pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3 + 1] = 0.;
+  	          pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3 + 2] = 0.;
   	        }
               } else {
   	        // Use normal, full lag functions here
@@ -380,15 +397,15 @@ int main(int argc, char* argv[])
 	            float pv = (lagvals[i][j] - minvals[i]) / (ranges[i]);
   	            pv < 0. ? pv = 0. : pv = pv;
   	            pv > 1. ? pv = 1. : pv = pv;
-  	            pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3] = pv;
+  	            pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3] = pv;
 		  } else {
-  	            pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3] = lagvals[i][j];
+  	            pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3] = lagvals[i][j];
 		  }
 		} else {
-	          pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3] = 0.;
+	          pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3] = 0.;
 		}
-  	        pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3 + 1] = 0;
-  	        pixels[i * 3 * 128 * 2 + k * 128 * 3 + j * 3 + 2] = 0;
+  	        pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3 + 1] = 0;
+  	        pixels[i * 3 * NUMLAGS * 2 + k * NUMLAGS * 3 + j * 3 + 2] = 0;
   	      }
   	    }
   	  }
@@ -396,8 +413,7 @@ int main(int argc, char* argv[])
         }
   
   	// Upload the updated texture to the GPU
-  	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 64, 64, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-  	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 128, 64, 0, GL_RGB, GL_FLOAT, pixels);
+  	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, NUMLAGS, 64, 0, GL_RGB, GL_FLOAT, pixels);
         glGenerateMipmap(GL_TEXTURE_2D);
   
         // render container
@@ -440,6 +456,18 @@ void processInput(GLFWwindow *window)
 
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
 	peakMode = false;
+
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+	if (jDown == false) {
+          jDown = true;
+	  std::cout << "Loading config JSON file..." << std::endl;
+	  loadConfig();
+	}
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_RELEASE) {
+        if (jDown == true) {
+	  jDown = false;
+	}
+    }
 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 	if (selectedMic == 0) {
@@ -629,8 +657,8 @@ void processInput(GLFWwindow *window)
 	if (bDown == false) {
           // First press, do something here
           bDown = true;
-	  lagoffsets[selectedBaseline] = (lagoffsets[selectedBaseline] - 1) % 129;
-	  glUniform1iv(loloc, 28, lagoffsets);
+	  lagoffsets[selectedBaseline] = fmod(lagoffsets[selectedBaseline] - 1., float(NUMLAGS + 1));
+	  glUniform1fv(loloc, 28, lagoffsets);
 	  std::cout << "Changed baseline " << selectedBaseline + 1 << " lag offset to " << lagoffsets[selectedBaseline] << std::endl;
 	}
     }
@@ -646,8 +674,8 @@ void processInput(GLFWwindow *window)
 	if (nDown == false) {
           // First press, do something here
           nDown = true;
-	  lagoffsets[selectedBaseline] = (lagoffsets[selectedBaseline] + 1) % 129;
-	  glUniform1iv(loloc, 28, lagoffsets);
+	  lagoffsets[selectedBaseline] = fmod(lagoffsets[selectedBaseline] + 1., float(NUMLAGS + 1));
+	  glUniform1fv(loloc, 28, lagoffsets);
 	  std::cout << "Changed baseline " << selectedBaseline + 1 << " lag offset to " << lagoffsets[selectedBaseline] << std::endl;
 	}
     }

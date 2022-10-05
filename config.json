@@ -1,0 +1,134 @@
+{"config": {
+  "positions": {
+    "micpos1": {
+      "x": -0.5,
+      "y": -0.5,
+      "z": 0.0
+    },
+    "micpos2": {
+      "x": -0.25,
+      "y": -0.5,
+      "z": 0.0
+    },
+    "micpos3": {
+      "x": 0.25,
+      "y": -0.5,
+      "z": 0.0
+    },
+    "micpos4": {
+      "x": 0.5,
+      "y": -0.5,
+      "z": 0.0
+    },
+    "micpos5": {
+      "x": -0.5,
+      "y": 0.5,
+      "z": 0.0
+    },
+    "micpos6": {
+      "x": -0.25,
+      "y": 0.5,
+      "z": 0.0
+    },
+    "micpos7": {
+      "x": 0.25,
+      "y": 0.5,
+      "z": 0.0
+    },
+    "micpos8": {
+      "x": 0.5,
+      "y": 0.5,
+      "z": 0.0
+    }
+  },
+  "lagoffsets": {
+    "lagoffset1":  0.0,
+    "lagoffset2":  0.0,
+    "lagoffset3":  0.0,
+    "lagoffset4":  0.0,
+    "lagoffset5":  0.0,
+    "lagoffset6":  0.0,
+    "lagoffset7":  0.0,
+    "lagoffset8":  0.0,
+    "lagoffset9":  0.0,
+    "lagoffset10": 0.0,
+    "lagoffset11": 0.0,
+    "lagoffset12": 0.0,
+    "lagoffset13": 0.0,
+    "lagoffset14": 0.0,
+    "lagoffset15": 0.0,
+    "lagoffset16": 0.0,
+    "lagoffset17": 0.0,
+    "lagoffset18": 0.0,
+    "lagoffset19": 0.0,
+    "lagoffset20": 0.0,
+    "lagoffset21": 0.0,
+    "lagoffset22": 0.0,
+    "lagoffset23": 0.0,
+    "lagoffset24": 0.0,
+    "lagoffset25": 0.0,
+    "lagoffset26": 0.0,
+    "lagoffset27": 0.0,
+    "lagoffset28": 0.0
+  },
+  "ampscales": {
+    "ampscale1":  0.0,
+    "ampscale2":  0.0,
+    "ampscale3":  0.0,
+    "ampscale4":  0.0,
+    "ampscale5":  0.0,
+    "ampscale6":  0.0,
+    "ampscale7":  0.0,
+    "ampscale8":  0.0,
+    "ampscale9":  0.0,
+    "ampscale10": 0.0,
+    "ampscale11": 0.0,
+    "ampscale12": 0.0,
+    "ampscale13": 0.0,
+    "ampscale14": 0.0,
+    "ampscale15": 0.0,
+    "ampscale16": 0.0,
+    "ampscale17": 0.0,
+    "ampscale18": 0.0,
+    "ampscale19": 0.0,
+    "ampscale20": 0.0,
+    "ampscale21": 0.0,
+    "ampscale22": 0.0,
+    "ampscale23": 0.0,
+    "ampscale24": 0.0,
+    "ampscale25": 0.0,
+    "ampscale26": 0.0,
+    "ampscale27": 0.0,
+    "ampscale28": 0.0
+  },
+  "ampoffsets": {
+    "ampoffset1":  0.0,
+    "ampoffset2":  0.0,
+    "ampoffset3":  0.0,
+    "ampoffset4":  0.0,
+    "ampoffset5":  0.0,
+    "ampoffset6":  0.0,
+    "ampoffset7":  0.0,
+    "ampoffset8":  0.0,
+    "ampoffset9":  0.0,
+    "ampoffset10": 0.0,
+    "ampoffset11": 0.0,
+    "ampoffset12": 0.0,
+    "ampoffset13": 0.0,
+    "ampoffset14": 0.0,
+    "ampoffset15": 0.0,
+    "ampoffset16": 0.0,
+    "ampoffset17": 0.0,
+    "ampoffset18": 0.0,
+    "ampoffset19": 0.0,
+    "ampoffset20": 0.0,
+    "ampoffset21": 0.0,
+    "ampoffset22": 0.0,
+    "ampoffset23": 0.0,
+    "ampoffset24": 0.0,
+    "ampoffset25": 0.0,
+    "ampoffset26": 0.0,
+    "ampoffset27": 0.0,
+    "ampoffset28": 0.0
+  }
+}}
