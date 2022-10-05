@@ -18,55 +18,35 @@ IOBUF PORT "uart_rx" IO_TYPE=LVCMOS33;
 
 # GPIO pins for microphone data
 
-LOCATE COMP "mic_data_1" SITE "D13" ; # X4 pin 7
+LOCATE COMP "mic_data_1" SITE "B19" ; # X4 pin 7
 IOBUF PORT "mic_data_1" IO_TYPE=LVCMOS33 ;
 
-LOCATE COMP "mic_data_2" SITE "D14" ; # X4 pin 11
+LOCATE COMP "mic_data_2" SITE "B9" ; # X4 pin 11
 IOBUF PORT "mic_data_2" IO_TYPE=LVCMOS33 ;
 
-LOCATE COMP "mic_data_3" SITE "A9" ; # X4 pin 15
+LOCATE COMP "mic_data_3" SITE "D6" ; # X4 pin 15
 IOBUF PORT "mic_data_3" IO_TYPE=LVCMOS33 ;
 
-LOCATE COMP "mic_data_4" SITE "D12" ; # X4 pin 17
+LOCATE COMP "mic_data_4" SITE "D7" ; # X4 pin 17
 IOBUF PORT "mic_data_4" IO_TYPE=LVCMOS33 ;
 
-LOCATE COMP "mic_data_5" SITE "E15" ; # X4 pin 27
+LOCATE COMP "mic_data_5" SITE "B6" ; # X4 pin 27
 IOBUF PORT "mic_data_5" IO_TYPE=LVCMOS33 ;
 
-LOCATE COMP "mic_data_6" SITE "C16" ; # X4 pin 31
+LOCATE COMP "mic_data_6" SITE "D9" ; # X4 pin 31
 IOBUF PORT "mic_data_6" IO_TYPE=LVCMOS33 ;
 
-LOCATE COMP "mic_data_7" SITE "B17" ; # X4 pin 33
+LOCATE COMP "mic_data_7" SITE "C8" ; # X4 pin 33
 IOBUF PORT "mic_data_7" IO_TYPE=LVCMOS33 ;
 
-LOCATE COMP "mic_data_8" SITE "A17" ; # X4 pin 36
+LOCATE COMP "mic_data_8" SITE "E8" ; # X4 pin 36
 IOBUF PORT "mic_data_8" IO_TYPE=LVCMOS33 ;
 
 # Mic clk pins
 
-LOCATE COMP "mic_clk_1" SITE "E13" ; # X4 pin 8
-IOBUF PORT "mic_clk_1" IO_TYPE=LVCMOS33 ;
-
-LOCATE COMP "mic_clk_2" SITE "E14" ; # X4 pin 12
-IOBUF PORT "mic_clk_2" IO_TYPE=LVCMOS33 ;
-
-LOCATE COMP "mic_clk_3" SITE "B10" ; # X4 pin 16
-IOBUF PORT "mic_clk_3" IO_TYPE=LVCMOS33 ;
-
-LOCATE COMP "mic_clk_4" SITE "E12" ; # X4 pin 18
-IOBUF PORT "mic_clk_4" IO_TYPE=LVCMOS33 ;
-
-LOCATE COMP "mic_clk_5" SITE "A16" ; # X4 pin 28
-IOBUF PORT "mic_clk_5" IO_TYPE=LVCMOS33 ;
-
-LOCATE COMP "mic_clk_6" SITE "D16" ; # X4 pin 32
-IOBUF PORT "mic_clk_6" IO_TYPE=LVCMOS33 ;
-
-LOCATE COMP "mic_clk_7" SITE "C17" ; # X4 pin 35
-IOBUF PORT "mic_clk_7" IO_TYPE=LVCMOS33 ;
-
-LOCATE COMP "mic_clk_8" SITE "B18" ; # X4 pin 37
-IOBUF PORT "mic_clk_8" IO_TYPE=LVCMOS33 ;
+LOCATE COMP "mic_clk" SITE "E13" ; # X4 pin 8
+IOBUF PORT "mic_clk" IO_TYPE=LVCMOS33 ;
+FREQUENCY PORT "mic_clk" 3.0 MHz;
 
 # GPIO pins for debugging
 

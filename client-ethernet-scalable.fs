@@ -12,6 +12,8 @@
 
 // 50 cm baseline is ~137 lags.
 
+#define NUMLAGS 256
+
 out vec4 FragColor;
 in vec3 ourColor;
 in vec2 TexCoord;
@@ -34,7 +36,7 @@ uniform vec3 mic8pos = vec3(-0.026, -0.065, 0.);
 uniform int selectedMic = 0;
 uniform int selectedBaseline = -1;
 
-uniform int lagoffsets[28]= int[](64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64);
+uniform float lagoffsets[28]= float[](NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.,NUMLAGS/2.);
 uniform float ampscales[28] = float[](1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.);
 uniform float ampshifts[28] = float[](0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.);
 
@@ -58,34 +60,36 @@ float samplerate = 46875.;
 float domeradius = 1.; // Use 1 m for sky dome radius for now
 float PI = 3.141592654;
 
-vec4 c01 =  vec4((1. + cos(0.  * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 0.  * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 0.  * 2. * PI / 28.))/2., 1.);
-vec4 c02 =  vec4((1. + cos(1.  * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 1.  * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 1.  * 2. * PI / 28.))/2., 1.);
-vec4 c03 =  vec4((1. + cos(2.  * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 2.  * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 2.  * 2. * PI / 28.))/2., 1.);
-vec4 c04 =  vec4((1. + cos(3.  * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 3.  * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 3.  * 2. * PI / 28.))/2., 1.);
-vec4 c05 =  vec4((1. + cos(4.  * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 4.  * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 4.  * 2. * PI / 28.))/2., 1.);
-vec4 c06 =  vec4((1. + cos(5.  * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 5.  * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 5.  * 2. * PI / 28.))/2., 1.);
-vec4 c07 =  vec4((1. + cos(6.  * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 6.  * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 6.  * 2. * PI / 28.))/2., 1.);
-vec4 c08 =  vec4((1. + cos(7.  * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 7.  * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 7.  * 2. * PI / 28.))/2., 1.);
-vec4 c09 =  vec4((1. + cos(8.  * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 8.  * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 8.  * 2. * PI / 28.))/2., 1.);
-vec4 c10 = vec4((1. + cos(9.  * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 9.  * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 9.  * 2. * PI / 28.))/2., 1.);
-vec4 c11 = vec4((1. + cos(10. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 10. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 10. * 2. * PI / 28.))/2., 1.);
-vec4 c12 = vec4((1. + cos(11. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 11. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 11. * 2. * PI / 28.))/2., 1.);
-vec4 c13 = vec4((1. + cos(12. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 12. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 12. * 2. * PI / 28.))/2., 1.);
-vec4 c14 = vec4((1. + cos(13. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 13. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 13. * 2. * PI / 28.))/2., 1.);
-vec4 c15 = vec4((1. + cos(14. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 14. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 14. * 2. * PI / 28.))/2., 1.);
-vec4 c16 = vec4((1. + cos(15. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 15. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 15. * 2. * PI / 28.))/2., 1.);
-vec4 c17 = vec4((1. + cos(16. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 16. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 16. * 2. * PI / 28.))/2., 1.);
-vec4 c18 = vec4((1. + cos(17. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 17. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 17. * 2. * PI / 28.))/2., 1.);
-vec4 c19 = vec4((1. + cos(18. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 18. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 18. * 2. * PI / 28.))/2., 1.);
-vec4 c20 = vec4((1. + cos(19. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 19. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 19. * 2. * PI / 28.))/2., 1.);
-vec4 c21 = vec4((1. + cos(20. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 20. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 20. * 2. * PI / 28.))/2., 1.);
-vec4 c22 = vec4((1. + cos(21. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 21. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 21. * 2. * PI / 28.))/2., 1.);
-vec4 c23 = vec4((1. + cos(22. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 22. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 22. * 2. * PI / 28.))/2., 1.);
-vec4 c24 = vec4((1. + cos(23. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 23. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 23. * 2. * PI / 28.))/2., 1.);
-vec4 c25 = vec4((1. + cos(24. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 24. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 24. * 2. * PI / 28.))/2., 1.);
-vec4 c26 = vec4((1. + cos(25. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 25. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 25. * 2. * PI / 28.))/2., 1.);
-vec4 c27 = vec4((1. + cos(26. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 26. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 26. * 2. * PI / 28.))/2., 1.);
-vec4 c28 = vec4((1. + cos(27. * 2. * PI / 28.))/2., (1. + cos(2. * PI / 3. + 27. * 2. * PI / 28.))/2., (1. + cos(4. * PI / 3. + 27. * 2. * PI / 28.))/2., 1.);
+float chanoffset = 1.;
+
+vec4 c01 =  vec4((chanoffset + cos(0.  * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 0.  * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 0.  * 2. * PI / 28.))/2., 1.);
+vec4 c02 =  vec4((chanoffset + cos(1.  * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 1.  * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 1.  * 2. * PI / 28.))/2., 1.);
+vec4 c03 =  vec4((chanoffset + cos(2.  * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 2.  * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 2.  * 2. * PI / 28.))/2., 1.);
+vec4 c04 =  vec4((chanoffset + cos(3.  * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 3.  * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 3.  * 2. * PI / 28.))/2., 1.);
+vec4 c05 =  vec4((chanoffset + cos(4.  * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 4.  * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 4.  * 2. * PI / 28.))/2., 1.);
+vec4 c06 =  vec4((chanoffset + cos(5.  * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 5.  * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 5.  * 2. * PI / 28.))/2., 1.);
+vec4 c07 =  vec4((chanoffset + cos(6.  * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 6.  * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 6.  * 2. * PI / 28.))/2., 1.);
+vec4 c08 =  vec4((chanoffset + cos(7.  * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 7.  * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 7.  * 2. * PI / 28.))/2., 1.);
+vec4 c09 =  vec4((chanoffset + cos(8.  * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 8.  * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 8.  * 2. * PI / 28.))/2., 1.);
+vec4 c10 =  vec4((chanoffset + cos(9.  * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 9.  * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 9.  * 2. * PI / 28.))/2., 1.);
+vec4 c11 =  vec4((chanoffset + cos(10. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 10. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 10. * 2. * PI / 28.))/2., 1.);
+vec4 c12 =  vec4((chanoffset + cos(11. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 11. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 11. * 2. * PI / 28.))/2., 1.);
+vec4 c13 =  vec4((chanoffset + cos(12. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 12. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 12. * 2. * PI / 28.))/2., 1.);
+vec4 c14 =  vec4((chanoffset + cos(13. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 13. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 13. * 2. * PI / 28.))/2., 1.);
+vec4 c15 =  vec4((chanoffset + cos(14. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 14. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 14. * 2. * PI / 28.))/2., 1.);
+vec4 c16 =  vec4((chanoffset + cos(15. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 15. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 15. * 2. * PI / 28.))/2., 1.);
+vec4 c17 =  vec4((chanoffset + cos(16. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 16. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 16. * 2. * PI / 28.))/2., 1.);
+vec4 c18 =  vec4((chanoffset + cos(17. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 17. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 17. * 2. * PI / 28.))/2., 1.);
+vec4 c19 =  vec4((chanoffset + cos(18. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 18. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 18. * 2. * PI / 28.))/2., 1.);
+vec4 c20 =  vec4((chanoffset + cos(19. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 19. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 19. * 2. * PI / 28.))/2., 1.);
+vec4 c21 =  vec4((chanoffset + cos(20. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 20. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 20. * 2. * PI / 28.))/2., 1.);
+vec4 c22 =  vec4((chanoffset + cos(21. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 21. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 21. * 2. * PI / 28.))/2., 1.);
+vec4 c23 =  vec4((chanoffset + cos(22. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 22. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 22. * 2. * PI / 28.))/2., 1.);
+vec4 c24 =  vec4((chanoffset + cos(23. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 23. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 23. * 2. * PI / 28.))/2., 1.);
+vec4 c25 =  vec4((chanoffset + cos(24. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 24. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 24. * 2. * PI / 28.))/2., 1.);
+vec4 c26 =  vec4((chanoffset + cos(25. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 25. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 25. * 2. * PI / 28.))/2., 1.);
+vec4 c27 =  vec4((chanoffset + cos(26. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 26. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 26. * 2. * PI / 28.))/2., 1.);
+vec4 c28 =  vec4((chanoffset + cos(27. * 2. * PI / 28.))/2., (chanoffset + cos(2. * PI / 3. + 27. * 2. * PI / 28.))/2., (chanoffset + cos(4. * PI / 3. + 27. * 2. * PI / 28.))/2., 1.);
 
 void main()
 {
@@ -110,64 +114,66 @@ void main()
       vec3 r_mic8 = pixelpos - mic8pos;
 
       // Baseline 1-2
-      int lag_12 = int(round(samplerate * (length(r_mic2) - length(r_mic1)) / soundspeed));
-      int lag_13 = int(round(samplerate * (length(r_mic3) - length(r_mic1)) / soundspeed));
-      int lag_14 = int(round(samplerate * (length(r_mic4) - length(r_mic1)) / soundspeed));
-      int lag_15 = int(round(samplerate * (length(r_mic5) - length(r_mic1)) / soundspeed));
-      int lag_16 = int(round(samplerate * (length(r_mic6) - length(r_mic1)) / soundspeed));
-      int lag_17 = int(round(samplerate * (length(r_mic7) - length(r_mic1)) / soundspeed));
-      int lag_18 = int(round(samplerate * (length(r_mic8) - length(r_mic1)) / soundspeed));
-      int lag_23 = int(round(samplerate * (length(r_mic3) - length(r_mic2)) / soundspeed));
-      int lag_24 = int(round(samplerate * (length(r_mic4) - length(r_mic2)) / soundspeed));
-      int lag_25 = int(round(samplerate * (length(r_mic5) - length(r_mic2)) / soundspeed));
-      int lag_26 = int(round(samplerate * (length(r_mic6) - length(r_mic2)) / soundspeed));
-      int lag_27 = int(round(samplerate * (length(r_mic7) - length(r_mic2)) / soundspeed));
-      int lag_28 = int(round(samplerate * (length(r_mic8) - length(r_mic2)) / soundspeed));
-      int lag_34 = int(round(samplerate * (length(r_mic4) - length(r_mic3)) / soundspeed));
-      int lag_35 = int(round(samplerate * (length(r_mic5) - length(r_mic3)) / soundspeed));
-      int lag_36 = int(round(samplerate * (length(r_mic6) - length(r_mic3)) / soundspeed));
-      int lag_37 = int(round(samplerate * (length(r_mic7) - length(r_mic3)) / soundspeed));
-      int lag_38 = int(round(samplerate * (length(r_mic8) - length(r_mic3)) / soundspeed));
-      int lag_45 = int(round(samplerate * (length(r_mic5) - length(r_mic4)) / soundspeed));
-      int lag_46 = int(round(samplerate * (length(r_mic6) - length(r_mic4)) / soundspeed));
-      int lag_47 = int(round(samplerate * (length(r_mic7) - length(r_mic4)) / soundspeed));
-      int lag_48 = int(round(samplerate * (length(r_mic8) - length(r_mic4)) / soundspeed));
-      int lag_56 = int(round(samplerate * (length(r_mic6) - length(r_mic5)) / soundspeed));
-      int lag_57 = int(round(samplerate * (length(r_mic7) - length(r_mic5)) / soundspeed));
-      int lag_58 = int(round(samplerate * (length(r_mic8) - length(r_mic5)) / soundspeed));
-      int lag_67 = int(round(samplerate * (length(r_mic7) - length(r_mic6)) / soundspeed));
-      int lag_68 = int(round(samplerate * (length(r_mic8) - length(r_mic6)) / soundspeed));
-      // WEIRD: swap order of mics 7 and 8 here for correct behaviour...
-      int lag_78 = int(round(samplerate * (length(r_mic8) - length(r_mic7)) / soundspeed));
+      float lag_12 = samplerate * (length(r_mic2) - length(r_mic1)) / soundspeed;
+      float lag_13 = samplerate * (length(r_mic3) - length(r_mic1)) / soundspeed;
+      float lag_14 = samplerate * (length(r_mic4) - length(r_mic1)) / soundspeed;
+      float lag_15 = samplerate * (length(r_mic5) - length(r_mic1)) / soundspeed;
+      float lag_16 = samplerate * (length(r_mic6) - length(r_mic1)) / soundspeed;
+      float lag_17 = samplerate * (length(r_mic7) - length(r_mic1)) / soundspeed;
+      float lag_18 = samplerate * (length(r_mic8) - length(r_mic1)) / soundspeed;
+      float lag_23 = samplerate * (length(r_mic3) - length(r_mic2)) / soundspeed;
+      float lag_24 = samplerate * (length(r_mic4) - length(r_mic2)) / soundspeed;
+      float lag_25 = samplerate * (length(r_mic5) - length(r_mic2)) / soundspeed;
+      float lag_26 = samplerate * (length(r_mic6) - length(r_mic2)) / soundspeed;
+      float lag_27 = samplerate * (length(r_mic7) - length(r_mic2)) / soundspeed;
+      float lag_28 = samplerate * (length(r_mic8) - length(r_mic2)) / soundspeed;
+      float lag_34 = samplerate * (length(r_mic4) - length(r_mic3)) / soundspeed;
+      float lag_35 = samplerate * (length(r_mic5) - length(r_mic3)) / soundspeed;
+      float lag_36 = samplerate * (length(r_mic6) - length(r_mic3)) / soundspeed;
+      float lag_37 = samplerate * (length(r_mic7) - length(r_mic3)) / soundspeed;
+      float lag_38 = samplerate * (length(r_mic8) - length(r_mic3)) / soundspeed;
+      float lag_45 = samplerate * (length(r_mic5) - length(r_mic4)) / soundspeed;
+      float lag_46 = samplerate * (length(r_mic6) - length(r_mic4)) / soundspeed;
+      float lag_47 = samplerate * (length(r_mic7) - length(r_mic4)) / soundspeed;
+      float lag_48 = samplerate * (length(r_mic8) - length(r_mic4)) / soundspeed;
+      float lag_56 = samplerate * (length(r_mic6) - length(r_mic5)) / soundspeed;
+      float lag_57 = samplerate * (length(r_mic7) - length(r_mic5)) / soundspeed;
+      float lag_58 = samplerate * (length(r_mic8) - length(r_mic5)) / soundspeed;
+      float lag_67 = samplerate * (length(r_mic7) - length(r_mic6)) / soundspeed;
+      float lag_68 = samplerate * (length(r_mic8) - length(r_mic6)) / soundspeed;
+      float lag_78 = samplerate * (length(r_mic8) - length(r_mic7)) / soundspeed;
 
-      vec4 brightness =     ((max((texture(texture1, vec2(float(lag_12 +  lagoffsets[0]) / 128., 1.  / 64.)).r - ampshifts[ 0]) * ampscales[  0], 0.)  * c01 +
-                              max((texture(texture1, vec2(float(lag_13 +  lagoffsets[1]) / 128., 3.  / 64.)).r - ampshifts[ 1]) * ampscales[  1], 0.)  * c02 +
-                              max((texture(texture1, vec2(float(lag_14 +  lagoffsets[2]) / 128., 5.  / 64.)).r - ampshifts[ 2]) * ampscales[  2], 0.)  * c03 +
-                              max((texture(texture1, vec2(float(lag_15 +  lagoffsets[3]) / 128., 7.  / 64.)).r - ampshifts[ 3]) * ampscales[  3], 0.)  * c04 +
-                              max((texture(texture1, vec2(float(lag_16 +  lagoffsets[4]) / 128., 9.  / 64.)).r - ampshifts[ 4]) * ampscales[  4], 0.)  * c05 +
-                              max((texture(texture1, vec2(float(lag_17 +  lagoffsets[5]) / 128., 11. / 64.)).r - ampshifts[ 5]) * ampscales[  5], 0.)  * c06 +
-                              max((texture(texture1, vec2(float(lag_18 +  lagoffsets[6]) / 128., 13. / 64.)).r - ampshifts[ 6]) * ampscales[  6], 0.)  * c07 +
-                              max((texture(texture1, vec2(float(lag_23 +  lagoffsets[7]) / 128., 15. / 64.)).r - ampshifts[ 7]) * ampscales[  7], 0.)  * c08 +
-                              max((texture(texture1, vec2(float(lag_24 +  lagoffsets[8]) / 128., 17. / 64.)).r - ampshifts[ 8]) * ampscales[  8], 0.)  * c09 +
-                              max((texture(texture1, vec2(float(lag_25 +  lagoffsets[9]) / 128., 19. / 64.)).r - ampshifts[ 9]) * ampscales[  9], 0.)  * c10 +
-                              max((texture(texture1, vec2(float(lag_26 + lagoffsets[10]) / 128., 21. / 64.)).r - ampshifts[10]) * ampscales[ 10], 0.)  * c11 +
-                              max((texture(texture1, vec2(float(lag_27 + lagoffsets[11]) / 128., 23. / 64.)).r - ampshifts[11]) * ampscales[ 11], 0.)  * c12 +
-                              max((texture(texture1, vec2(float(lag_28 + lagoffsets[12]) / 128., 25. / 64.)).r - ampshifts[12]) * ampscales[ 12], 0.)  * c13 +
-                              max((texture(texture1, vec2(float(lag_34 + lagoffsets[13]) / 128., 27. / 64.)).r - ampshifts[13]) * ampscales[ 13], 0.)  * c14 +
-                              max((texture(texture1, vec2(float(lag_35 + lagoffsets[14]) / 128., 29. / 64.)).r - ampshifts[14]) * ampscales[ 14], 0.)  * c15 +
-                              max((texture(texture1, vec2(float(lag_36 + lagoffsets[15]) / 128., 31. / 64.)).r - ampshifts[15]) * ampscales[ 15], 0.)  * c16 +
-                              max((texture(texture1, vec2(float(lag_37 + lagoffsets[16]) / 128., 33. / 64.)).r - ampshifts[16]) * ampscales[ 16], 0.)  * c17 +
-                              max((texture(texture1, vec2(float(lag_38 + lagoffsets[17]) / 128., 35. / 64.)).r - ampshifts[17]) * ampscales[ 17], 0.)  * c18 +
-                              max((texture(texture1, vec2(float(lag_45 + lagoffsets[18]) / 128., 37. / 64.)).r - ampshifts[18]) * ampscales[ 18], 0.)  * c19 +
-                              max((texture(texture1, vec2(float(lag_46 + lagoffsets[19]) / 128., 39. / 64.)).r - ampshifts[19]) * ampscales[ 19], 0.)  * c20 +
-                              max((texture(texture1, vec2(float(lag_47 + lagoffsets[20]) / 128., 41. / 64.)).r - ampshifts[20]) * ampscales[ 20], 0.)  * c21 +
-                              max((texture(texture1, vec2(float(lag_48 + lagoffsets[21]) / 128., 43. / 64.)).r - ampshifts[21]) * ampscales[ 21], 0.)  * c22 +
-                              max((texture(texture1, vec2(float(lag_56 + lagoffsets[22]) / 128., 45. / 64.)).r - ampshifts[22]) * ampscales[ 22], 0.)  * c23 +
-                              max((texture(texture1, vec2(float(lag_57 + lagoffsets[23]) / 128., 47. / 64.)).r - ampshifts[23]) * ampscales[ 23], 0.)  * c24 +
-                              max((texture(texture1, vec2(float(lag_58 + lagoffsets[24]) / 128., 49. / 64.)).r - ampshifts[24]) * ampscales[ 24], 0.)  * c25 +
-                              max((texture(texture1, vec2(float(lag_67 + lagoffsets[25]) / 128., 51. / 64.)).r - ampshifts[25]) * ampscales[ 25], 0.)  * c26 +
-                              max((texture(texture1, vec2(float(lag_68 + lagoffsets[26]) / 128., 53. / 64.)).r - ampshifts[26]) * ampscales[ 26], 0.)  * c27 +
-                              max((texture(texture1, vec2(float(lag_78 + lagoffsets[27]) / 128., 55. / 64.)).r - ampshifts[27]) * ampscales[ 27], 0.)  * c28));
+      float scaleoffset = -0.2;
+      float totalscale = 1.;
+      if (selectedBaseline == -1) totalscale = 1./28.;
+      vec4 brightness =     ((max((texture(texture1, vec2(float(lag_12 +  lagoffsets[0]) / float(NUMLAGS), 1.  / 64.)).r - ampshifts[ 0]) * ampscales[  0], scaleoffset)  * c01 +
+                              max((texture(texture1, vec2(float(lag_13 +  lagoffsets[1]) / float(NUMLAGS), 3.  / 64.)).r - ampshifts[ 1]) * ampscales[  1], scaleoffset)  * c02 +
+                              max((texture(texture1, vec2(float(lag_14 +  lagoffsets[2]) / float(NUMLAGS), 5.  / 64.)).r - ampshifts[ 2]) * ampscales[  2], scaleoffset)  * c03 +
+                              max((texture(texture1, vec2(float(lag_15 +  lagoffsets[3]) / float(NUMLAGS), 7.  / 64.)).r - ampshifts[ 3]) * ampscales[  3], scaleoffset)  * c04 +
+                              max((texture(texture1, vec2(float(lag_16 +  lagoffsets[4]) / float(NUMLAGS), 9.  / 64.)).r - ampshifts[ 4]) * ampscales[  4], scaleoffset)  * c05 +
+                              max((texture(texture1, vec2(float(lag_17 +  lagoffsets[5]) / float(NUMLAGS), 11. / 64.)).r - ampshifts[ 5]) * ampscales[  5], scaleoffset)  * c06 +
+                              max((texture(texture1, vec2(float(lag_18 +  lagoffsets[6]) / float(NUMLAGS), 13. / 64.)).r - ampshifts[ 6]) * ampscales[  6], scaleoffset)  * c07 +
+                              max((texture(texture1, vec2(float(lag_23 +  lagoffsets[7]) / float(NUMLAGS), 15. / 64.)).r - ampshifts[ 7]) * ampscales[  7], scaleoffset)  * c08 +
+                              max((texture(texture1, vec2(float(lag_24 +  lagoffsets[8]) / float(NUMLAGS), 17. / 64.)).r - ampshifts[ 8]) * ampscales[  8], scaleoffset)  * c09 +
+                              max((texture(texture1, vec2(float(lag_25 +  lagoffsets[9]) / float(NUMLAGS), 19. / 64.)).r - ampshifts[ 9]) * ampscales[  9], scaleoffset)  * c10 +
+                              max((texture(texture1, vec2(float(lag_26 + lagoffsets[10]) / float(NUMLAGS), 21. / 64.)).r - ampshifts[10]) * ampscales[ 10], scaleoffset)  * c11 +
+                              max((texture(texture1, vec2(float(lag_27 + lagoffsets[11]) / float(NUMLAGS), 23. / 64.)).r - ampshifts[11]) * ampscales[ 11], scaleoffset)  * c12 +
+                              max((texture(texture1, vec2(float(lag_28 + lagoffsets[12]) / float(NUMLAGS), 25. / 64.)).r - ampshifts[12]) * ampscales[ 12], scaleoffset)  * c13 +
+                              max((texture(texture1, vec2(float(lag_34 + lagoffsets[13]) / float(NUMLAGS), 27. / 64.)).r - ampshifts[13]) * ampscales[ 13], scaleoffset)  * c14 +
+                              max((texture(texture1, vec2(float(lag_35 + lagoffsets[14]) / float(NUMLAGS), 29. / 64.)).r - ampshifts[14]) * ampscales[ 14], scaleoffset)  * c15 +
+                              max((texture(texture1, vec2(float(lag_36 + lagoffsets[15]) / float(NUMLAGS), 31. / 64.)).r - ampshifts[15]) * ampscales[ 15], scaleoffset)  * c16 +
+                              max((texture(texture1, vec2(float(lag_37 + lagoffsets[16]) / float(NUMLAGS), 33. / 64.)).r - ampshifts[16]) * ampscales[ 16], scaleoffset)  * c17 +
+                              max((texture(texture1, vec2(float(lag_38 + lagoffsets[17]) / float(NUMLAGS), 35. / 64.)).r - ampshifts[17]) * ampscales[ 17], scaleoffset)  * c18 +
+                              max((texture(texture1, vec2(float(lag_45 + lagoffsets[18]) / float(NUMLAGS), 37. / 64.)).r - ampshifts[18]) * ampscales[ 18], scaleoffset)  * c19 +
+                              max((texture(texture1, vec2(float(lag_46 + lagoffsets[19]) / float(NUMLAGS), 39. / 64.)).r - ampshifts[19]) * ampscales[ 19], scaleoffset)  * c20 +
+                              max((texture(texture1, vec2(float(lag_47 + lagoffsets[20]) / float(NUMLAGS), 41. / 64.)).r - ampshifts[20]) * ampscales[ 20], scaleoffset)  * c21 +
+                              max((texture(texture1, vec2(float(lag_48 + lagoffsets[21]) / float(NUMLAGS), 43. / 64.)).r - ampshifts[21]) * ampscales[ 21], scaleoffset)  * c22 +
+                              max((texture(texture1, vec2(float(lag_56 + lagoffsets[22]) / float(NUMLAGS), 45. / 64.)).r - ampshifts[22]) * ampscales[ 22], scaleoffset)  * c23 +
+                              max((texture(texture1, vec2(float(lag_57 + lagoffsets[23]) / float(NUMLAGS), 47. / 64.)).r - ampshifts[23]) * ampscales[ 23], scaleoffset)  * c24 +
+                              max((texture(texture1, vec2(float(lag_58 + lagoffsets[24]) / float(NUMLAGS), 49. / 64.)).r - ampshifts[24]) * ampscales[ 24], scaleoffset)  * c25 +
+                              max((texture(texture1, vec2(float(lag_67 + lagoffsets[25]) / float(NUMLAGS), 51. / 64.)).r - ampshifts[25]) * ampscales[ 25], scaleoffset)  * c26 +
+                              max((texture(texture1, vec2(float(lag_68 + lagoffsets[26]) / float(NUMLAGS), 53. / 64.)).r - ampshifts[26]) * ampscales[ 26], scaleoffset)  * c27 +
+                              max((texture(texture1, vec2(float(lag_78 + lagoffsets[27]) / float(NUMLAGS), 55. / 64.)).r - ampshifts[27]) * ampscales[ 27], scaleoffset)  * c28)) * totalscale;
       FragColor = brightness;
 
     } else {
