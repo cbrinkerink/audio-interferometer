@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <boost/lexical_cast.hpp>
 
+#include <math.h>
 #include <cmath>
 
 #include "json.hpp"
@@ -45,6 +46,7 @@ float micpos7[3] = {0.026, -0.065, 0.};
 float micpos8[3] = {-0.026, -0.065, 0.};
 int m1loc, m2loc, m3loc, m4loc, m5loc, m6loc, m7loc, m8loc, smloc, sbloc, loloc, ascloc, ashloc;
 bool jDown = false;
+bool eDown = false;
 bool zDown = false;
 bool xDown = false;
 bool cDown = false;
@@ -63,10 +65,17 @@ float ampscales[28] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1
 float ampshifts[28] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
 bool gotConnection = false;
+char* commandLineArgs[3];
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+// Ethernet settings
+boost::asio::io_service io_service;
+udp::endpoint local_endpoint;
+udp::socket sock(io_service);
+udp::endpoint sender_endpoint;
 
 std::string uchar2hex(unsigned char inchar)
 {
@@ -75,43 +84,151 @@ std::string uchar2hex(unsigned char inchar)
   return oss.str();
 }
 
-// Load settings from JSON config file
+// Function to load settings from JSON config file
+// TODO: add lag offsets and amplitude settings
 void loadConfig(void) {
-  std::ifstream f("config.json");
-  json data = json::parse(f);
+  try {
+    std::ifstream f("config.json");
+    json data = json::parse(f);
+  
+    micpos1[0] = data["config"]["positions"]["micpos1"]["x"].get<float>();
+    micpos1[1] = data["config"]["positions"]["micpos1"]["y"].get<float>();
+    micpos1[2] = data["config"]["positions"]["micpos1"]["z"].get<float>();
+    micpos2[0] = data["config"]["positions"]["micpos2"]["x"].get<float>();
+    micpos2[1] = data["config"]["positions"]["micpos2"]["y"].get<float>();
+    micpos2[2] = data["config"]["positions"]["micpos2"]["z"].get<float>();
+    micpos3[0] = data["config"]["positions"]["micpos3"]["x"].get<float>();
+    micpos3[1] = data["config"]["positions"]["micpos3"]["y"].get<float>();
+    micpos3[2] = data["config"]["positions"]["micpos3"]["z"].get<float>();
+    micpos4[0] = data["config"]["positions"]["micpos4"]["x"].get<float>();
+    micpos4[1] = data["config"]["positions"]["micpos4"]["y"].get<float>();
+    micpos4[2] = data["config"]["positions"]["micpos4"]["z"].get<float>();
+    micpos5[0] = data["config"]["positions"]["micpos5"]["x"].get<float>();
+    micpos5[1] = data["config"]["positions"]["micpos5"]["y"].get<float>();
+    micpos5[2] = data["config"]["positions"]["micpos5"]["z"].get<float>();
+    micpos6[0] = data["config"]["positions"]["micpos6"]["x"].get<float>();
+    micpos6[1] = data["config"]["positions"]["micpos6"]["y"].get<float>();
+    micpos6[2] = data["config"]["positions"]["micpos6"]["z"].get<float>();
+    micpos7[0] = data["config"]["positions"]["micpos7"]["x"].get<float>();
+    micpos7[1] = data["config"]["positions"]["micpos7"]["y"].get<float>();
+    micpos7[2] = data["config"]["positions"]["micpos7"]["z"].get<float>();
+    micpos8[0] = data["config"]["positions"]["micpos8"]["x"].get<float>();
+    micpos8[1] = data["config"]["positions"]["micpos8"]["y"].get<float>();
+    micpos8[2] = data["config"]["positions"]["micpos8"]["z"].get<float>();
+    lagoffsets[0]  = data["config"]["lagoffsets"]["lagoffset1"].get<float>();
+    lagoffsets[1]  = data["config"]["lagoffsets"]["lagoffset2"].get<float>();
+    lagoffsets[2]  = data["config"]["lagoffsets"]["lagoffset3"].get<float>();
+    lagoffsets[3]  = data["config"]["lagoffsets"]["lagoffset4"].get<float>();
+    lagoffsets[4]  = data["config"]["lagoffsets"]["lagoffset5"].get<float>();
+    lagoffsets[5]  = data["config"]["lagoffsets"]["lagoffset6"].get<float>();
+    lagoffsets[6]  = data["config"]["lagoffsets"]["lagoffset7"].get<float>();
+    lagoffsets[7]  = data["config"]["lagoffsets"]["lagoffset8"].get<float>();
+    lagoffsets[8]  = data["config"]["lagoffsets"]["lagoffset9"].get<float>();
+    lagoffsets[9]  = data["config"]["lagoffsets"]["lagoffset10"].get<float>();
+    lagoffsets[10] = data["config"]["lagoffsets"]["lagoffset11"].get<float>();
+    lagoffsets[11] = data["config"]["lagoffsets"]["lagoffset12"].get<float>();
+    lagoffsets[12] = data["config"]["lagoffsets"]["lagoffset13"].get<float>();
+    lagoffsets[13] = data["config"]["lagoffsets"]["lagoffset14"].get<float>();
+    lagoffsets[14] = data["config"]["lagoffsets"]["lagoffset15"].get<float>();
+    lagoffsets[15] = data["config"]["lagoffsets"]["lagoffset16"].get<float>();
+    lagoffsets[16] = data["config"]["lagoffsets"]["lagoffset17"].get<float>();
+    lagoffsets[17] = data["config"]["lagoffsets"]["lagoffset18"].get<float>();
+    lagoffsets[18] = data["config"]["lagoffsets"]["lagoffset19"].get<float>();
+    lagoffsets[19] = data["config"]["lagoffsets"]["lagoffset20"].get<float>();
+    lagoffsets[20] = data["config"]["lagoffsets"]["lagoffset21"].get<float>();
+    lagoffsets[21] = data["config"]["lagoffsets"]["lagoffset22"].get<float>();
+    lagoffsets[22] = data["config"]["lagoffsets"]["lagoffset23"].get<float>();
+    lagoffsets[23] = data["config"]["lagoffsets"]["lagoffset24"].get<float>();
+    lagoffsets[24] = data["config"]["lagoffsets"]["lagoffset25"].get<float>();
+    lagoffsets[25] = data["config"]["lagoffsets"]["lagoffset26"].get<float>();
+    lagoffsets[26] = data["config"]["lagoffsets"]["lagoffset27"].get<float>();
+    lagoffsets[27] = data["config"]["lagoffsets"]["lagoffset28"].get<float>();
+    ampscales[0]  = data["config"]["ampscales"]["ampscale1"].get<float>();
+    ampscales[1]  = data["config"]["ampscales"]["ampscale2"].get<float>();
+    ampscales[2]  = data["config"]["ampscales"]["ampscale3"].get<float>();
+    ampscales[3]  = data["config"]["ampscales"]["ampscale4"].get<float>();
+    ampscales[4]  = data["config"]["ampscales"]["ampscale5"].get<float>();
+    ampscales[5]  = data["config"]["ampscales"]["ampscale6"].get<float>();
+    ampscales[6]  = data["config"]["ampscales"]["ampscale7"].get<float>();
+    ampscales[7]  = data["config"]["ampscales"]["ampscale8"].get<float>();
+    ampscales[8]  = data["config"]["ampscales"]["ampscale9"].get<float>();
+    ampscales[9]  = data["config"]["ampscales"]["ampscale10"].get<float>();
+    ampscales[10] = data["config"]["ampscales"]["ampscale11"].get<float>();
+    ampscales[11] = data["config"]["ampscales"]["ampscale12"].get<float>();
+    ampscales[12] = data["config"]["ampscales"]["ampscale13"].get<float>();
+    ampscales[13] = data["config"]["ampscales"]["ampscale14"].get<float>();
+    ampscales[14] = data["config"]["ampscales"]["ampscale15"].get<float>();
+    ampscales[15] = data["config"]["ampscales"]["ampscale16"].get<float>();
+    ampscales[16] = data["config"]["ampscales"]["ampscale17"].get<float>();
+    ampscales[17] = data["config"]["ampscales"]["ampscale18"].get<float>();
+    ampscales[18] = data["config"]["ampscales"]["ampscale19"].get<float>();
+    ampscales[19] = data["config"]["ampscales"]["ampscale20"].get<float>();
+    ampscales[20] = data["config"]["ampscales"]["ampscale21"].get<float>();
+    ampscales[21] = data["config"]["ampscales"]["ampscale22"].get<float>();
+    ampscales[22] = data["config"]["ampscales"]["ampscale23"].get<float>();
+    ampscales[23] = data["config"]["ampscales"]["ampscale24"].get<float>();
+    ampscales[24] = data["config"]["ampscales"]["ampscale25"].get<float>();
+    ampscales[25] = data["config"]["ampscales"]["ampscale26"].get<float>();
+    ampscales[26] = data["config"]["ampscales"]["ampscale27"].get<float>();
+    ampscales[27] = data["config"]["ampscales"]["ampscale28"].get<float>();
+    ampshifts[0]  = data["config"]["ampoffsets"]["ampoffset1"].get<float>();
+    ampshifts[1]  = data["config"]["ampoffsets"]["ampoffset2"].get<float>();
+    ampshifts[2]  = data["config"]["ampoffsets"]["ampoffset3"].get<float>();
+    ampshifts[3]  = data["config"]["ampoffsets"]["ampoffset4"].get<float>();
+    ampshifts[4]  = data["config"]["ampoffsets"]["ampoffset5"].get<float>();
+    ampshifts[5]  = data["config"]["ampoffsets"]["ampoffset6"].get<float>();
+    ampshifts[6]  = data["config"]["ampoffsets"]["ampoffset7"].get<float>();
+    ampshifts[7]  = data["config"]["ampoffsets"]["ampoffset8"].get<float>();
+    ampshifts[8]  = data["config"]["ampoffsets"]["ampoffset9"].get<float>();
+    ampshifts[9]  = data["config"]["ampoffsets"]["ampoffset10"].get<float>();
+    ampshifts[10] = data["config"]["ampoffsets"]["ampoffset11"].get<float>();
+    ampshifts[11] = data["config"]["ampoffsets"]["ampoffset12"].get<float>();
+    ampshifts[12] = data["config"]["ampoffsets"]["ampoffset13"].get<float>();
+    ampshifts[13] = data["config"]["ampoffsets"]["ampoffset14"].get<float>();
+    ampshifts[14] = data["config"]["ampoffsets"]["ampoffset15"].get<float>();
+    ampshifts[15] = data["config"]["ampoffsets"]["ampoffset16"].get<float>();
+    ampshifts[16] = data["config"]["ampoffsets"]["ampoffset17"].get<float>();
+    ampshifts[17] = data["config"]["ampoffsets"]["ampoffset18"].get<float>();
+    ampshifts[18] = data["config"]["ampoffsets"]["ampoffset19"].get<float>();
+    ampshifts[19] = data["config"]["ampoffsets"]["ampoffset20"].get<float>();
+    ampshifts[20] = data["config"]["ampoffsets"]["ampoffset21"].get<float>();
+    ampshifts[21] = data["config"]["ampoffsets"]["ampoffset22"].get<float>();
+    ampshifts[22] = data["config"]["ampoffsets"]["ampoffset23"].get<float>();
+    ampshifts[23] = data["config"]["ampoffsets"]["ampoffset24"].get<float>();
+    ampshifts[24] = data["config"]["ampoffsets"]["ampoffset25"].get<float>();
+    ampshifts[25] = data["config"]["ampoffsets"]["ampoffset26"].get<float>();
+    ampshifts[26] = data["config"]["ampoffsets"]["ampoffset27"].get<float>();
+    ampshifts[27] = data["config"]["ampoffsets"]["ampoffset28"].get<float>();
+    glUniform3f(m1loc, micpos1[0], micpos1[1], micpos1[2]);
+    glUniform3f(m2loc, micpos2[0], micpos2[1], micpos2[2]);
+    glUniform3f(m3loc, micpos3[0], micpos3[1], micpos3[2]);
+    glUniform3f(m4loc, micpos4[0], micpos4[1], micpos4[2]);
+    glUniform3f(m5loc, micpos5[0], micpos5[1], micpos5[2]);
+    glUniform3f(m6loc, micpos6[0], micpos6[1], micpos6[2]);
+    glUniform3f(m7loc, micpos7[0], micpos7[1], micpos7[2]);
+    glUniform3f(m8loc, micpos8[0], micpos8[1], micpos8[2]);
+    glUniform1fv(loloc, 28, lagoffsets);
+    glUniform1fv(ascloc, 28, ampscales);
+    glUniform1fv(ashloc, 28, ampshifts);
+  } catch (std::exception& e) {
+    std::cout << "Could not load JSON config file!!" << std::endl;
+  }
+}
 
-  micpos1[0] = data["config"]["positions"]["micpos1"]["x"].get<float>();
-  micpos1[1] = data["config"]["positions"]["micpos1"]["y"].get<float>();
-  micpos1[2] = data["config"]["positions"]["micpos1"]["z"].get<float>();
-  micpos2[0] = data["config"]["positions"]["micpos2"]["x"].get<float>();
-  micpos2[1] = data["config"]["positions"]["micpos2"]["y"].get<float>();
-  micpos2[2] = data["config"]["positions"]["micpos2"]["z"].get<float>();
-  micpos3[0] = data["config"]["positions"]["micpos3"]["x"].get<float>();
-  micpos3[1] = data["config"]["positions"]["micpos3"]["y"].get<float>();
-  micpos3[2] = data["config"]["positions"]["micpos3"]["z"].get<float>();
-  micpos4[0] = data["config"]["positions"]["micpos4"]["x"].get<float>();
-  micpos4[1] = data["config"]["positions"]["micpos4"]["y"].get<float>();
-  micpos4[2] = data["config"]["positions"]["micpos4"]["z"].get<float>();
-  micpos5[0] = data["config"]["positions"]["micpos5"]["x"].get<float>();
-  micpos5[1] = data["config"]["positions"]["micpos5"]["y"].get<float>();
-  micpos5[2] = data["config"]["positions"]["micpos5"]["z"].get<float>();
-  micpos6[0] = data["config"]["positions"]["micpos6"]["x"].get<float>();
-  micpos6[1] = data["config"]["positions"]["micpos6"]["y"].get<float>();
-  micpos6[2] = data["config"]["positions"]["micpos6"]["z"].get<float>();
-  micpos7[0] = data["config"]["positions"]["micpos7"]["x"].get<float>();
-  micpos7[1] = data["config"]["positions"]["micpos7"]["y"].get<float>();
-  micpos7[2] = data["config"]["positions"]["micpos7"]["z"].get<float>();
-  micpos8[0] = data["config"]["positions"]["micpos8"]["x"].get<float>();
-  micpos8[1] = data["config"]["positions"]["micpos8"]["y"].get<float>();
-  micpos8[2] = data["config"]["positions"]["micpos8"]["z"].get<float>();
-  glUniform3f(m1loc, micpos1[0], micpos1[1], micpos1[2]);
-  glUniform3f(m2loc, micpos2[0], micpos2[1], micpos2[2]);
-  glUniform3f(m3loc, micpos3[0], micpos3[1], micpos3[2]);
-  glUniform3f(m4loc, micpos4[0], micpos4[1], micpos4[2]);
-  glUniform3f(m5loc, micpos5[0], micpos5[1], micpos5[2]);
-  glUniform3f(m6loc, micpos6[0], micpos6[1], micpos6[2]);
-  glUniform3f(m7loc, micpos7[0], micpos7[1], micpos7[2]);
-  glUniform3f(m8loc, micpos8[0], micpos8[1], micpos8[2]);
+void setupEthernetConnection(char* argv[]) {
+  try {
+    std::cout << "Trying to set up UDP listener on IP " << argv[1] << " using port " << argv[2] << std::endl;
+    sock.close();
+    sock.open(udp::v4());
+    local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(argv[1]), boost::lexical_cast<int>(argv[2]));
+    sock.bind(local_endpoint);
+    gotConnection = true;
+    std::cout << "Local bind " << local_endpoint << std::endl;
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+    std::cout << "Could not connect to remote IP address, using static placeholder data" << std::endl;
+    gotConnection = false;
+  }
 }
 
 int main(int argc, char* argv[])
@@ -125,20 +242,13 @@ int main(int argc, char* argv[])
         return 1;
       }
 
+      commandLineArgs[0] = argv[0];
+      commandLineArgs[1] = argv[1];
+      commandLineArgs[2] = argv[2];
+
       // Initialise ethernet necessities
-      boost::asio::io_service io_service;
-      udp::endpoint local_endpoint;
-      udp::socket socket(io_service);
-      socket.open(udp::v4());
-      udp::endpoint sender_endpoint;
-      try {
-        local_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(argv[1]), boost::lexical_cast<int>(argv[2]));
-        socket.bind(local_endpoint);
-        std::cout << "Local bind " << local_endpoint << std::endl;
-	gotConnection = true;
-      } catch (std::exception& e) {
-        std::cout << "Could not connect to remote IP address, using placeholder data" << std::endl;
-      }
+      // TODO: make toggle-able with a keypress!
+      setupEthernetConnection(commandLineArgs);
 
       boost::array<char, NUMLAGS * 4> recv_buf; // Current buffer size: 1 baseline, 256 lags, 4 bytes per lag
       size_t bytes_available;
@@ -297,15 +407,16 @@ int main(int argc, char* argv[])
       while (!glfwWindowShouldClose(window))
       {
 	if (gotConnection) {
-          bytes_available = socket.available();
+          bytes_available = sock.available();
           while (bytes_available > 0) {
+            if (gotConnection == false) break;
 	    //std::cout << std::endl;
             //std::cout << "Bytes in RX buffer: " << bytes_available << std::endl;
-            size_t len = socket.receive_from(boost::asio::buffer(recv_buf), sender_endpoint);
+            size_t len = sock.receive_from(boost::asio::buffer(recv_buf), sender_endpoint);
 	    //for (int i = 0; i < 4; i++) {
             //  std::cout << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)(uint8_t)recv_buf.data()[i] << " ";
   	    //}
-            bytes_available = socket.available();
+            bytes_available = sock.available();
 
 	    int baseline = -1;
 
@@ -353,6 +464,17 @@ int main(int argc, char* argv[])
 	      //if (maxvals[baseline] == 0) {
 	      //  std::cout << "Warning: baseline " << baseline << " has max of zero!" << std::endl;
 	      //}
+	    }
+	  }
+	} else {
+	  // Full max lag variables with placeholder data
+	  for (int i = 0; i < 28; i++) {
+	    maxbin[i] = NUMLAGS/2;
+	    minvals[i] = -100000.;
+	    maxvals[i] = 100000.;
+	    ranges[i] = 200000.;
+	    for (int j = 0; j < NUMLAGS; j++) {
+	      lagvals[i][j] = 100000. * cos(10. * 3.141592654 * float(j - NUMLAGS/2) / float(NUMLAGS));
 	    }
 	  }
 	}
@@ -466,6 +588,18 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_J) == GLFW_RELEASE) {
         if (jDown == true) {
 	  jDown = false;
+	}
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	if (eDown == false) {
+          eDown = true;
+	  std::cout << "Trying to set up ethernet connection..." << std::endl;
+	  setupEthernetConnection(commandLineArgs);
+	}
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_RELEASE) {
+        if (eDown == true) {
+	  eDown = false;
 	}
     }
 
