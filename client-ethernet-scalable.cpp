@@ -1,4 +1,14 @@
 // Disclaimer: this code is incredibly ugly! But it works.
+//
+// To add to this client: a GUI.
+// To display:
+// - on/off checkboxes for all mics (8)
+// - on/off checkboxes for all baselines (28)
+// - Sliders for all lag corrections (28)
+// - Fields for mic positions (3 x 8)
+// - Sliders for all amplitude scales (28)
+// - Sliders for all amplitude thresholds (28)
+
 #include "glad.h"
 #include "glfw3.h"
 #include "stb_image.h"
@@ -605,112 +615,112 @@ void processInput(GLFWwindow *window)
 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 	if (selectedMic == 0) {
-	  micpos1[1] = micpos1[1] + 0.001f;
+	  micpos1[1] = micpos1[1] + 0.005f;
           glUniform3f(m1loc, micpos1[0], micpos1[1], micpos1[2]);
 	} else if (selectedMic == 1) {
-	  micpos2[1] = micpos2[1] + 0.001f;
+	  micpos2[1] = micpos2[1] + 0.005f;
           glUniform3f(m2loc, micpos2[0], micpos2[1], micpos2[2]);
 	} else if (selectedMic == 2) {
-	  micpos3[1] = micpos3[1] + 0.001f;
+	  micpos3[1] = micpos3[1] + 0.005f;
           glUniform3f(m3loc, micpos3[0], micpos3[1], micpos3[2]);
 	} else if (selectedMic == 3) {
-	  micpos4[1] = micpos4[1] + 0.001f;
+	  micpos4[1] = micpos4[1] + 0.005f;
           glUniform3f(m4loc, micpos4[0], micpos4[1], micpos4[2]);
 	} else if (selectedMic == 4) {
-	  micpos5[1] = micpos5[1] + 0.001f;
+	  micpos5[1] = micpos5[1] + 0.005f;
           glUniform3f(m5loc, micpos5[0], micpos5[1], micpos5[2]);
 	} else if (selectedMic == 5) {
-	  micpos6[1] = micpos6[1] + 0.001f;
+	  micpos6[1] = micpos6[1] + 0.005f;
           glUniform3f(m6loc, micpos6[0], micpos6[1], micpos6[2]);
 	} else if (selectedMic == 6) {
-	  micpos7[1] = micpos7[1] + 0.001f;
+	  micpos7[1] = micpos7[1] + 0.005f;
           glUniform3f(m7loc, micpos7[0], micpos7[1], micpos7[2]);
 	} else if (selectedMic == 7) {
-	  micpos8[1] = micpos8[1] + 0.001f;
+	  micpos8[1] = micpos8[1] + 0.005f;
           glUniform3f(m8loc, micpos8[0], micpos8[1], micpos8[2]);
 	}
     }
 
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
 	if (selectedMic == 0) {
-	  micpos1[1] = micpos1[1] - 0.001f;
+	  micpos1[1] = micpos1[1] - 0.005f;
           glUniform3f(m1loc, micpos1[0], micpos1[1], micpos1[2]);
 	} else if (selectedMic == 1) {
-	  micpos2[1] = micpos2[1] - 0.001f;
+	  micpos2[1] = micpos2[1] - 0.005f;
           glUniform3f(m2loc, micpos2[0], micpos2[1], micpos2[2]);
 	} else if (selectedMic == 2) {
-	  micpos3[1] = micpos3[1] - 0.001f;
+	  micpos3[1] = micpos3[1] - 0.005f;
           glUniform3f(m3loc, micpos3[0], micpos3[1], micpos3[2]);
 	} else if (selectedMic == 3) {
-	  micpos4[1] = micpos4[1] - 0.001f;
+	  micpos4[1] = micpos4[1] - 0.005f;
           glUniform3f(m4loc, micpos4[0], micpos4[1], micpos4[2]);
 	} else if (selectedMic == 4) {
-	  micpos5[1] = micpos5[1] - 0.001f;
+	  micpos5[1] = micpos5[1] - 0.005f;
           glUniform3f(m5loc, micpos5[0], micpos5[1], micpos5[2]);
 	} else if (selectedMic == 5) {
-	  micpos6[1] = micpos6[1] - 0.001f;
+	  micpos6[1] = micpos6[1] - 0.005f;
           glUniform3f(m6loc, micpos6[0], micpos6[1], micpos6[2]);
 	} else if (selectedMic == 6) {
-	  micpos7[1] = micpos7[1] - 0.001f;
+	  micpos7[1] = micpos7[1] - 0.005f;
           glUniform3f(m7loc, micpos7[0], micpos7[1], micpos7[2]);
 	} else if (selectedMic == 7) {
-	  micpos8[1] = micpos8[1] - 0.001f;
+	  micpos8[1] = micpos8[1] - 0.005f;
           glUniform3f(m8loc, micpos8[0], micpos8[1], micpos8[2]);
 	}
     }
 
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 	if (selectedMic == 0) {
-	  micpos1[0] = micpos1[0] - 0.001f;
+	  micpos1[0] = micpos1[0] - 0.005f;
           glUniform3f(m1loc, micpos1[0], micpos1[1], micpos1[2]);
 	} else if (selectedMic == 1) {
-	  micpos2[0] = micpos2[0] - 0.001f;
+	  micpos2[0] = micpos2[0] - 0.005f;
           glUniform3f(m2loc, micpos2[0], micpos2[1], micpos2[2]);
 	} else if (selectedMic == 2) {
-	  micpos3[0] = micpos3[0] - 0.001f;
+	  micpos3[0] = micpos3[0] - 0.005f;
           glUniform3f(m3loc, micpos3[0], micpos3[1], micpos3[2]);
 	} else if (selectedMic == 3) {
-	  micpos4[0] = micpos4[0] - 0.001f;
+	  micpos4[0] = micpos4[0] - 0.005f;
           glUniform3f(m4loc, micpos4[0], micpos4[1], micpos4[2]);
 	} else if (selectedMic == 4) {
-	  micpos5[0] = micpos5[0] - 0.001f;
+	  micpos5[0] = micpos5[0] - 0.005f;
           glUniform3f(m5loc, micpos5[0], micpos5[1], micpos5[2]);
 	} else if (selectedMic == 5) {
-	  micpos6[0] = micpos6[0] - 0.001f;
+	  micpos6[0] = micpos6[0] - 0.005f;
           glUniform3f(m6loc, micpos6[0], micpos6[1], micpos6[2]);
 	} else if (selectedMic == 6) {
-	  micpos7[0] = micpos7[0] - 0.001f;
+	  micpos7[0] = micpos7[0] - 0.005f;
           glUniform3f(m7loc, micpos7[0], micpos7[1], micpos7[2]);
 	} else if (selectedMic == 7) {
-	  micpos8[0] = micpos8[0] - 0.001f;
+	  micpos8[0] = micpos8[0] - 0.005f;
           glUniform3f(m8loc, micpos8[0], micpos8[1], micpos8[2]);
 	}
     }
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 	if (selectedMic == 0) {
-	  micpos1[0] = micpos1[0] + 0.001f;
+	  micpos1[0] = micpos1[0] + 0.005f;
           glUniform3f(m1loc, micpos1[0], micpos1[1], micpos1[2]);
 	} else if (selectedMic == 1) {
-	  micpos2[0] = micpos2[0] + 0.001f;
+	  micpos2[0] = micpos2[0] + 0.005f;
           glUniform3f(m2loc, micpos2[0], micpos2[1], micpos2[2]);
 	} else if (selectedMic == 2) {
-	  micpos3[0] = micpos3[0] + 0.001f;
+	  micpos3[0] = micpos3[0] + 0.005f;
           glUniform3f(m3loc, micpos3[0], micpos3[1], micpos3[2]);
 	} else if (selectedMic == 3) {
-	  micpos4[0] = micpos4[0] + 0.001f;
+	  micpos4[0] = micpos4[0] + 0.005f;
           glUniform3f(m4loc, micpos4[0], micpos4[1], micpos4[2]);
 	} else if (selectedMic == 4) {
-	  micpos5[0] = micpos5[0] + 0.001f;
+	  micpos5[0] = micpos5[0] + 0.005f;
           glUniform3f(m5loc, micpos5[0], micpos5[1], micpos5[2]);
 	} else if (selectedMic == 5) {
-	  micpos6[0] = micpos6[0] + 0.001f;
+	  micpos6[0] = micpos6[0] + 0.005f;
           glUniform3f(m6loc, micpos6[0], micpos6[1], micpos6[2]);
 	} else if (selectedMic == 6) {
-	  micpos7[0] = micpos7[0] + 0.001f;
+	  micpos7[0] = micpos7[0] + 0.005f;
           glUniform3f(m7loc, micpos7[0], micpos7[1], micpos7[2]);
 	} else if (selectedMic == 7) {
-	  micpos8[0] = micpos8[0] + 0.001f;
+	  micpos8[0] = micpos8[0] + 0.005f;
           glUniform3f(m8loc, micpos8[0], micpos8[1], micpos8[2]);
 	}
     }
@@ -845,24 +855,24 @@ void processInput(GLFWwindow *window)
 	  if (ampSelected) {
             //Change the amplitude scale down
 	    if (selectedBaseline != -1) {
-              ampscales[selectedBaseline] = ampscales[selectedBaseline] / 1.01;
+              ampscales[selectedBaseline] = ampscales[selectedBaseline] / 1.1;
 	      std::cout << "Amp scale for baseline " << selectedBaseline << " reduced to " << ampscales[selectedBaseline] << std::endl;
 	    } else {
 	      for (int i = 0; i < 28; i++) {
-	        ampscales[i] = ampscales[i] / 1.01;
+	        ampscales[i] = ampscales[i] / 1.1;
 	      }
-	      std::cout << "Adjusted amplitude scale for ALL baselines down by 1%" << std::endl;
+	      std::cout << "Adjusted amplitude scale for ALL baselines down by 10%" << std::endl;
 	    }
 	  } else {
             // Change the amplitude offset down
 	    if (selectedBaseline != -1) {
-	      ampshifts[selectedBaseline] = ampshifts[selectedBaseline] - 0.01;
+	      ampshifts[selectedBaseline] = ampshifts[selectedBaseline] - 0.1;
 	      std::cout << "Amp offset for baseline " << selectedBaseline << " reduced to " << ampshifts[selectedBaseline] << std::endl;
 	    } else {
 	      for (int i = 0; i < 28; i++) {
-	        ampshifts[i] = ampshifts[i] - 0.01;
+	        ampshifts[i] = ampshifts[i] - 0.1;
 	      }
-	      std::cout << "Adjusted amplitude shift for ALL baselines down by 0.01" << std::endl;
+	      std::cout << "Adjusted amplitude shift for ALL baselines down by 0.1" << std::endl;
 	    }
 	  }
 	  glUniform1fv(ascloc, 28, ampscales);
@@ -884,24 +894,24 @@ void processInput(GLFWwindow *window)
 	  if (ampSelected) {
             //Change the amplitude scale down
 	    if (selectedBaseline != -1) {
-              ampscales[selectedBaseline] = ampscales[selectedBaseline] * 1.01;
+              ampscales[selectedBaseline] = ampscales[selectedBaseline] * 1.1;
 	      std::cout << "Amp scale for baseline " << selectedBaseline << " increased to " << ampscales[selectedBaseline] << std::endl;
 	    } else {
 	      for (int i = 0; i < 28; i++) {
-	        ampscales[i] = ampscales[i] * 1.01;
+	        ampscales[i] = ampscales[i] * 1.1;
 	      }
-	      std::cout << "Adjusted amplitude scale for ALL baselines up by 1%" << std::endl;
+	      std::cout << "Adjusted amplitude scale for ALL baselines up by 10%" << std::endl;
 	    }
 	  } else {
             // Change the amplitude offset down
 	    if (selectedBaseline != -1) {
-	      ampshifts[selectedBaseline] = ampshifts[selectedBaseline] + 0.01;
+	      ampshifts[selectedBaseline] = ampshifts[selectedBaseline] + 0.1;
 	      std::cout << "Amp offset for baseline " << selectedBaseline << " increased to " << ampshifts[selectedBaseline] << std::endl;
 	    } else {
 	      for (int i = 0; i < 28; i++) {
-	        ampshifts[i] = ampshifts[i] + 0.01;
+	        ampshifts[i] = ampshifts[i] + 0.1;
 	      }
-	      std::cout << "Adjusted amplitude shift for ALL baselines up by 0.01" << std::endl;
+	      std::cout << "Adjusted amplitude shift for ALL baselines up by 0.1" << std::endl;
 	    }
 	  }
 	  glUniform1fv(ascloc, 28, ampscales);
