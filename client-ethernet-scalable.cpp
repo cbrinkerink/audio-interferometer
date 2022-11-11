@@ -46,6 +46,7 @@ void processInput(GLFWwindow *window);
 bool peakMode = true;
 int selectedBaseline = -1;
 char selectedMic = 0;
+float skyRadius = 1.0;
 float micpos1[3] = {-0.073, -0.065, 0.};
 float micpos2[3] = {0.073, -0.065, 0.};
 float micpos3[3] = {-0.038, 0.065, 0.};
@@ -54,7 +55,7 @@ float micpos5[3] = {0.118, 0.285, 0.};
 float micpos6[3] = {0.268, 0.285, 0.};
 float micpos7[3] = {0.026, -0.065, 0.};
 float micpos8[3] = {-0.026, -0.065, 0.};
-int m1loc, m2loc, m3loc, m4loc, m5loc, m6loc, m7loc, m8loc, smloc, sbloc, loloc, ascloc, ashloc;
+int m1loc, m2loc, m3loc, m4loc, m5loc, m6loc, m7loc, m8loc, smloc, sbloc, loloc, ascloc, ashloc, srloc;
 bool jDown = false;
 bool eDown = false;
 bool zDown = false;
@@ -65,6 +66,8 @@ bool bDown = false;
 bool nDown = false;
 bool mDown = false;
 bool lDown = false;
+bool gDown = false;
+bool hDown = false;
 bool commaDown = false;
 bool periodDown = false;
 bool slashDown = false;
@@ -101,30 +104,31 @@ void loadConfig(void) {
     std::ifstream f("config.json");
     json data = json::parse(f);
   
-    micpos1[0] = data["config"]["positions"]["micpos1"]["x"].get<float>();
-    micpos1[1] = data["config"]["positions"]["micpos1"]["y"].get<float>();
-    micpos1[2] = data["config"]["positions"]["micpos1"]["z"].get<float>();
-    micpos2[0] = data["config"]["positions"]["micpos2"]["x"].get<float>();
-    micpos2[1] = data["config"]["positions"]["micpos2"]["y"].get<float>();
-    micpos2[2] = data["config"]["positions"]["micpos2"]["z"].get<float>();
-    micpos3[0] = data["config"]["positions"]["micpos3"]["x"].get<float>();
-    micpos3[1] = data["config"]["positions"]["micpos3"]["y"].get<float>();
-    micpos3[2] = data["config"]["positions"]["micpos3"]["z"].get<float>();
-    micpos4[0] = data["config"]["positions"]["micpos4"]["x"].get<float>();
-    micpos4[1] = data["config"]["positions"]["micpos4"]["y"].get<float>();
-    micpos4[2] = data["config"]["positions"]["micpos4"]["z"].get<float>();
-    micpos5[0] = data["config"]["positions"]["micpos5"]["x"].get<float>();
-    micpos5[1] = data["config"]["positions"]["micpos5"]["y"].get<float>();
-    micpos5[2] = data["config"]["positions"]["micpos5"]["z"].get<float>();
-    micpos6[0] = data["config"]["positions"]["micpos6"]["x"].get<float>();
-    micpos6[1] = data["config"]["positions"]["micpos6"]["y"].get<float>();
-    micpos6[2] = data["config"]["positions"]["micpos6"]["z"].get<float>();
-    micpos7[0] = data["config"]["positions"]["micpos7"]["x"].get<float>();
-    micpos7[1] = data["config"]["positions"]["micpos7"]["y"].get<float>();
-    micpos7[2] = data["config"]["positions"]["micpos7"]["z"].get<float>();
-    micpos8[0] = data["config"]["positions"]["micpos8"]["x"].get<float>();
-    micpos8[1] = data["config"]["positions"]["micpos8"]["y"].get<float>();
-    micpos8[2] = data["config"]["positions"]["micpos8"]["z"].get<float>();
+    skyRadius = data["config"]["skyradius"].get<float>();
+    micpos1[0] = data["config"]["positions"]["micpos1"]["x"].get<float>() * 0.0254;
+    micpos1[1] = data["config"]["positions"]["micpos1"]["y"].get<float>() * 0.0254;
+    micpos1[2] = data["config"]["positions"]["micpos1"]["z"].get<float>() * 0.0254;
+    micpos2[0] = data["config"]["positions"]["micpos2"]["x"].get<float>() * 0.0254;
+    micpos2[1] = data["config"]["positions"]["micpos2"]["y"].get<float>() * 0.0254;
+    micpos2[2] = data["config"]["positions"]["micpos2"]["z"].get<float>() * 0.0254;
+    micpos3[0] = data["config"]["positions"]["micpos3"]["x"].get<float>() * 0.0254;
+    micpos3[1] = data["config"]["positions"]["micpos3"]["y"].get<float>() * 0.0254;
+    micpos3[2] = data["config"]["positions"]["micpos3"]["z"].get<float>() * 0.0254;
+    micpos4[0] = data["config"]["positions"]["micpos4"]["x"].get<float>() * 0.0254;
+    micpos4[1] = data["config"]["positions"]["micpos4"]["y"].get<float>() * 0.0254;
+    micpos4[2] = data["config"]["positions"]["micpos4"]["z"].get<float>() * 0.0254;
+    micpos5[0] = data["config"]["positions"]["micpos5"]["x"].get<float>() * 0.0254;
+    micpos5[1] = data["config"]["positions"]["micpos5"]["y"].get<float>() * 0.0254;
+    micpos5[2] = data["config"]["positions"]["micpos5"]["z"].get<float>() * 0.0254;
+    micpos6[0] = data["config"]["positions"]["micpos6"]["x"].get<float>() * 0.0254;
+    micpos6[1] = data["config"]["positions"]["micpos6"]["y"].get<float>() * 0.0254;
+    micpos6[2] = data["config"]["positions"]["micpos6"]["z"].get<float>() * 0.0254;
+    micpos7[0] = data["config"]["positions"]["micpos7"]["x"].get<float>() * 0.0254;
+    micpos7[1] = data["config"]["positions"]["micpos7"]["y"].get<float>() * 0.0254;
+    micpos7[2] = data["config"]["positions"]["micpos7"]["z"].get<float>() * 0.0254;
+    micpos8[0] = data["config"]["positions"]["micpos8"]["x"].get<float>() * 0.0254;
+    micpos8[1] = data["config"]["positions"]["micpos8"]["y"].get<float>() * 0.0254;
+    micpos8[2] = data["config"]["positions"]["micpos8"]["z"].get<float>() * 0.0254;
     lagoffsets[0]  = data["config"]["lagoffsets"]["lagoffset1"].get<float>();
     lagoffsets[1]  = data["config"]["lagoffsets"]["lagoffset2"].get<float>();
     lagoffsets[2]  = data["config"]["lagoffsets"]["lagoffset3"].get<float>();
@@ -209,6 +213,7 @@ void loadConfig(void) {
     ampshifts[25] = data["config"]["ampoffsets"]["ampoffset26"].get<float>();
     ampshifts[26] = data["config"]["ampoffsets"]["ampoffset27"].get<float>();
     ampshifts[27] = data["config"]["ampoffsets"]["ampoffset28"].get<float>();
+    glUniform1f(srloc, skyRadius);
     glUniform3f(m1loc, micpos1[0], micpos1[1], micpos1[2]);
     glUniform3f(m2loc, micpos2[0], micpos2[1], micpos2[2]);
     glUniform3f(m3loc, micpos3[0], micpos3[1], micpos3[2]);
@@ -382,6 +387,7 @@ int main(int argc, char* argv[])
  
       // Get the locations of all our uniform variables in the shader,
       // so we can update them according to the user's input later
+      srloc = glGetUniformLocation(ourShader.ID, "skyradius");
       m1loc = glGetUniformLocation(ourShader.ID, "mic1pos");
       m2loc = glGetUniformLocation(ourShader.ID, "mic2pos");
       m3loc = glGetUniformLocation(ourShader.ID, "mic3pos");
@@ -411,6 +417,7 @@ int main(int argc, char* argv[])
       glUniform1fv(loloc, 28, lagoffsets);
       glUniform1fv(ascloc, 28, ampscales);
       glUniform1fv(ashloc, 28, ampshifts);
+      glUniform1f(srloc, skyRadius);
 
       // render loop
       // -----------
@@ -942,11 +949,46 @@ void processInput(GLFWwindow *window)
 	}
     }
 
+        if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
+	if (gDown == false) {
+          // First press, do something here
+          gDown = true;
+	  skyRadius = skyRadius - 0.1;
+          glUniform1f(srloc, skyRadius);
+	  std::cout << "Sky radius decreased to " << skyRadius << std::endl;
+	}
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_RELEASE) {
+        if (gDown == true) {
+	  // First release, do something here
+	  gDown = false;
+	}
+    }
+
+        if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS) {
+	if (hDown == false) {
+          // First press, do something here
+          hDown = true;
+	  skyRadius = skyRadius + 0.1;
+          glUniform1f(srloc, skyRadius);
+	  std::cout << "Sky radius increased to " << skyRadius << std::endl;
+	}
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_H) == GLFW_RELEASE) {
+        if (hDown == true) {
+	  // First release, do something here
+	  hDown = false;
+	}
+    }
+
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
 	if (lDown == false) {
           // First press, do something here
           lDown = true;
 	  // Output all configurable settings
+	  std::cout << "Sky radius: " << skyRadius << std::endl;
 	  std::cout << "Mic pos 1: " << micpos1[0] << " " << micpos1[1] << " " << micpos1[2] << std::endl;
 	  std::cout << "Mic pos 2: " << micpos2[0] << " " << micpos2[1] << " " << micpos2[2] << std::endl;
 	  std::cout << "Mic pos 3: " << micpos3[0] << " " << micpos3[1] << " " << micpos3[2] << std::endl;

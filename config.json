@@ -1,75 +1,76 @@
 {"config": {
+  "skyradius" : 1.0,
   "positions": {
     "micpos1": {
-      "x": 0.53,
-      "y": 0.48,
+      "x": -9.0,
+      "y": 11.0,
       "z": 0.0
     },
     "micpos2": {
-      "x": 0.38,
-      "y": 0.155,
+      "x": -3.0,
+      "y": 7.0,
       "z": 0.0
     },
     "micpos3": {
-      "x": 0.19,
-      "y": 0.0,
+      "x": 3.0,
+      "y": 5.0,
       "z": 0.0
     },
     "micpos4": {
-      "x": 0.0,
-      "y": 0.0,
+      "x": 7.0,
+      "y": 6.0,
       "z": 0.0
     },
     "micpos5": {
-      "x": -0.23,
-      "y": 0.0,
+      "x": -8.0,
+      "y": -3.0,
       "z": 0.0
     },
     "micpos6": {
-      "x": -0.2,
-      "y": 0.52,
+      "x": 0.0,
+      "y": -3.0,
       "z": 0.0
     },
     "micpos7": {
-      "x": 0.17,
-      "y": 0.58,
+      "x": 5.0,
+      "y": -8.0,
       "z": 0.0
     },
     "micpos8": {
-      "x": 0.2,
-      "y": 0.46,
+      "x": 11.0,
+      "y": -5.0,
       "z": 0.0
     }
   },
   "lagoffsets": {
-    "lagoffset1":  135.0,
-    "lagoffset2":  133.0,
-    "lagoffset3":  137.0,
-    "lagoffset4":  131.0,
-    "lagoffset5":  137.0,
-    "lagoffset6":  139.0,
-    "lagoffset7":  132.0,
-    "lagoffset8":  131.0,
-    "lagoffset9":  138.0,
-    "lagoffset10": 128.0,
-    "lagoffset11": 134.0,
-    "lagoffset12": 138.0,
-    "lagoffset13": 129.0,
-    "lagoffset14": 137.0,
-    "lagoffset15": 126.0,
-    "lagoffset16": 135.0,
-    "lagoffset17": 138.0,
-    "lagoffset18": 130.0,
-    "lagoffset19": 121.0,
-    "lagoffset20": 129.0,
-    "lagoffset21": 131.0,
-    "lagoffset22": 123.0,
-    "lagoffset23": 140.0,
-    "lagoffset24": 141.0,
-    "lagoffset25": 133.0,
-    "lagoffset26": 135.0,
-    "lagoffset27": 126.0,
-    "lagoffset28": 122.0
+    "lagoffset1":  131.0, 
+    "lagoffset2":  133.0, 
+    "lagoffset3":  129.0, 
+    "lagoffset4":  136.0, 
+    "lagoffset5":  137.0, 
+    "lagoffset6":  140.0, 
+    "lagoffset7":  132.0, 
+    "lagoffset8":  130.0, 
+    "lagoffset9":  128.0, 
+    "lagoffset10": 139.0, 
+    "lagoffset11": 137.0, 
+    "lagoffset12": 138.0, 
+    "lagoffset13": 133.0, 
+    "lagoffset14": 129.0, 
+    "lagoffset15": 138.0, 
+    "lagoffset16": 137.0, 
+    "lagoffset17": 138.0, 
+    "lagoffset18": 135.0, 
+    "lagoffset19": 141.0, 
+    "lagoffset20": 139.0, 
+    "lagoffset21": 137.0, 
+    "lagoffset22": 136.0, 
+    "lagoffset23": 129.0, 
+    "lagoffset24": 130.0, 
+    "lagoffset25": 128.0, 
+    "lagoffset26": 133.0, 
+    "lagoffset27": 131.0, 
+    "lagoffset28": 128.0  
   },
   "ampscales": {
     "ampscale1":  7.10084,

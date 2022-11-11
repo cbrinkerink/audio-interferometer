@@ -24,7 +24,7 @@ in vec2 TexCoord;
 uniform sampler2D texture1;
 
 // Microphone positions
-// Offset of mic1: 0.073, 0.065
+uniform float skyradius = 1.0;
 uniform vec3 mic1pos = vec3(-0.073, -0.065, 0.);
 uniform vec3 mic2pos = vec3(0.073, -0.065, 0.);
 uniform vec3 mic3pos = vec3(-0.038, 0.065, 0.);
@@ -57,7 +57,6 @@ float pixelscale = windowHeight / retinaFactor; // Pixels per meter
 float soundspeed = 343.;
 float samplerate = 46875.;
 
-float domeradius = 1.; // Use 1 m for sky dome radius for now
 float PI = 3.141592654;
 
 float chanoffset = 1.;
@@ -93,6 +92,9 @@ vec4 c28 =  vec4((chanoffset + cos(27. * 2. * PI / 28.))/2., (chanoffset + cos(2
 
 void main()
 {
+    // Set pixel scale to account for sky radius
+    pixelscale = pixelscale / skyradius;
+
     // Test code to display lag texture directly
     //FragColor = texture(texture1, TexCoord);
 
@@ -101,8 +103,8 @@ void main()
 
     vec3 pixelpos = vec3((gl_FragCoord.xy - vec2(windowWidth, windowHeight) / retinaFactor) / pixelscale, 0.);
 
-    if (length(pixelpos) <= domeradius) {
-      pixelpos.z = sqrt(domeradius * domeradius - pixelpos.x * pixelpos.x - pixelpos.y * pixelpos.y);
+    if (length(pixelpos) <= skyradius) {
+      pixelpos.z = sqrt(skyradius * skyradius - pixelpos.x * pixelpos.x - pixelpos.y * pixelpos.y);
 
       vec3 r_mic1 = pixelpos - mic1pos;
       vec3 r_mic2 = pixelpos - mic2pos;
@@ -180,7 +182,7 @@ void main()
       FragColor = vec4(0.5, 0.5, 0.5, 1.);
     }
 
-    if (length(pixelpos.xy - mic1pos.xy) < 0.005) {
+    if (length(pixelpos.xy - mic1pos.xy) < 0.005 * skyradius) {
         if (selectedMic == 0) FragColor = vec4(1., 1., 1., 1.);
         else if (selectedBaseline == 0 ||
                  selectedBaseline == 1 ||
@@ -190,7 +192,7 @@ void main()
                  selectedBaseline == 5 ||
                  selectedBaseline == 6) FragColor = vec4(0., 1., 0., 1.);
         else FragColor = vec4(0., 0., 1., 1.);
-    } else if (length(pixelpos.xy - mic2pos.xy) < 0.005) {
+    } else if (length(pixelpos.xy - mic2pos.xy) < 0.005 * skyradius) {
         if (selectedMic == 1) FragColor = vec4(1., 1., 1., 1.);
         else if (selectedBaseline == 0 ||
                  selectedBaseline == 7 ||
@@ -200,7 +202,7 @@ void main()
                  selectedBaseline == 11 ||
                  selectedBaseline == 12) FragColor = vec4(0., 1., 0., 1.);
         else FragColor = vec4(0., 0., 1., 1.);
-    } else if (length(pixelpos.xy - mic3pos.xy) < 0.005) {
+    } else if (length(pixelpos.xy - mic3pos.xy) < 0.005 * skyradius) {
         if (selectedMic == 2) FragColor = vec4(1., 1., 1., 1.);
         else if (selectedBaseline == 1 ||
                  selectedBaseline == 7 ||
@@ -210,7 +212,7 @@ void main()
                  selectedBaseline == 16 ||
                  selectedBaseline == 17) FragColor = vec4(0., 1., 0., 1.);
         else FragColor = vec4(0., 0., 1., 1.);
-    } else if (length(pixelpos.xy - mic4pos.xy) < 0.005) {
+    } else if (length(pixelpos.xy - mic4pos.xy) < 0.005 * skyradius) {
         if (selectedMic == 3) FragColor = vec4(1., 1., 1., 1.);
         else if (selectedBaseline == 2 ||
                  selectedBaseline == 8 ||
@@ -220,7 +222,7 @@ void main()
                  selectedBaseline == 20 ||
                  selectedBaseline == 21) FragColor = vec4(0., 1., 0., 1.);
         else FragColor = vec4(0., 0., 1., 1.);
-    } else if (length(pixelpos.xy - mic5pos.xy) < 0.005) {
+    } else if (length(pixelpos.xy - mic5pos.xy) < 0.005 * skyradius) {
         if (selectedMic == 4) FragColor = vec4(1., 1., 1., 1.);
         else if (selectedBaseline == 3 ||
                  selectedBaseline == 9 ||
@@ -230,7 +232,7 @@ void main()
                  selectedBaseline == 23 ||
                  selectedBaseline == 24) FragColor = vec4(0., 1., 0., 1.);
         else FragColor = vec4(0., 0., 1., 1.);
-    } else if (length(pixelpos.xy - mic6pos.xy) < 0.005) {
+    } else if (length(pixelpos.xy - mic6pos.xy) < 0.005 * skyradius) {
         if (selectedMic == 5) FragColor = vec4(1., 1., 1., 1.);
         else if (selectedBaseline == 4 ||
                  selectedBaseline == 10 ||
@@ -240,7 +242,7 @@ void main()
                  selectedBaseline == 25 ||
                  selectedBaseline == 26) FragColor = vec4(0., 1., 0., 1.);
         else FragColor = vec4(0., 0., 1., 1.);
-    } else if (length(pixelpos.xy - mic7pos.xy) < 0.005) {
+    } else if (length(pixelpos.xy - mic7pos.xy) < 0.005 * skyradius) {
         if (selectedMic == 6) FragColor = vec4(1., 1., 1., 1.);
         else if (selectedBaseline == 5 ||
                  selectedBaseline == 11 ||
@@ -250,7 +252,7 @@ void main()
                  selectedBaseline == 25 ||
                  selectedBaseline == 27) FragColor = vec4(0., 1., 0., 1.);
         else FragColor = vec4(0., 0., 1., 1.);
-    } else if (length(pixelpos.xy - mic8pos.xy) < 0.005) {
+    } else if (length(pixelpos.xy - mic8pos.xy) < 0.005 * skyradius) {
         if (selectedMic == 7) FragColor = vec4(1., 1., 1., 1.);
         else if (selectedBaseline == 6 ||
                  selectedBaseline == 12 ||
